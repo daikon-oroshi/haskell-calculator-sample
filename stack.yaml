@@ -10,15 +10,14 @@
 #
 # resolver: lts-3.5
 # resolver: nightly-2015-09-21
-# resolver: ghc-7.10.2
 #
 # The location of a snapshot can be provided as a file or url. Stack assumes
 # a snapshot provided as a file might change, whereas a url resource does not.
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver:
-  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/0.yaml
+resolver: ghc-9.2.4
+#  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/0.yaml
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -35,7 +34,61 @@ packages:
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
 #
-# extra-deps:
+extra-deps:
+- gi-gtk-3.0.39@sha256:09e627c7013298981e9e1f8f6924c83fbcf571eb8dc8e3a580b95e84ea0e70d5,39348
+- haskell-gi-base-0.26.3@sha256:05a3d33c2faf9fbba3605ef25fec70d48247a22f1a9d2fdcf2126fa510b3395d,2448
+- gi-atk-2.0.25@sha256:7d33965a670b66e7d7a92c08759e18134b9f883e8c22a55eba6b468797bdbd13,6771
+- gi-cairo-1.0.27@sha256:eb832b72e1f0d3c1292226efbb32446862666b5c01e114cae09765717d3f2e2e,3707
+- gi-gdk-3.0.26@sha256:49a62909befd86b5a3fbc409ad7eb1266c2309ab0d8f7d48ddd7b588e8055647,8983
+- gi-gdkpixbuf-2.0.29@sha256:1169f2d39f9acfa309b3875289cda959a1eeb5634c83da62cefcda6fb91b922b,4356
+- gi-gio-2.0.30@sha256:eb03da35abff79b4004ab3341f6f1ede92c2289b675ed9653e5ac08d278ec4c8,22319
+- gi-glib-2.0.27@sha256:99df8fdcc7dc63726b69525a7876bee2be042c648105839d65508e2616bd6a29,9936
+- gi-gobject-2.0.28@sha256:f87b7a7aad4efbd991d584db088e2eacfd11d267840bd811680908a0a0ef663b,9549
+- gi-pango-1.0.27@sha256:3e9c5497382e8f112e834269de624980578cb6401e46f6537e694f94094b3af2,7461
+- haskell-gi-0.26.2@sha256:61aacb01d14c7c6b302b01d4e92b7b0c4ed0e16c8848625026c6f1219f4b3c9d,5169
+- haskell-gi-overloading-1.0@sha256:a59a812f4490b317fe2850c5442004f230130204af6cb4e0a6604acebb9f2f63,631
+- ansi-terminal-0.11.3@sha256:cc499d5f4c09a7213cd752ee69dbb5a5b8f3d1c777274e609eea4bca5c68ac8c,3321
+- attoparsec-0.14.4@sha256:c0569d86c02cadd403017ea414dcb5e4f7de5380de0d8a92b9337cad84cd5e02,5811
+- cabal-doctest-1.0.9@sha256:21823c6227a483b4faf210d7a55d435563ff69ddf94b48b8af1bba878196c820,1502
+- gi-gmodule-2.0.3@sha256:b964e42a57fe0b8d9bbc7bb8a998b4762cd41c646a40852a5f764a7e309af104,2766
+- gi-harfbuzz-0.0.7@sha256:21826e16df71f41fc59f1ab0675e9e0c18fe4c3852d38019fd275f588bef24c5,5935
+- pretty-show-1.10@sha256:bfef8da0ac4db4fc7f41edfec9e9a701ac206418d70702bff1e40f20d6a2b1f1,1888
+- regex-tdfa-1.3.2@sha256:3d8571a5ce87ee89ae0de602f1461df9a8236257f80548e9bee71585a26e3927,6845
+- safe-0.3.19@sha256:0910dafb8898f52bde4c646e560228a0fd08b1fca5457f222d2f5c0fad6d2039,2317
+- xdg-basedir-0.2.2@sha256:9d72d45e3be3aea5ae9fa9b47db31dbf9dbf0888e5f94a3972be3f1540791e8c,985
+- xml-conduit-1.9.1.1@sha256:c6cbafaea0d0348d83dc44a6c04328f0a2dbb7f4d7f90ddb50e8f79eae9dda54,3103
+- blaze-html-0.9.1.2@sha256:74b89ffa665891f528f571ce9e3c2dce24f698563f14b6f5e9e0512eccdf5dc2,3062
+- blaze-markup-0.8.2.8@sha256:8a47373003f472e851afbc3332bb9e0bf1b539a0dfad631bceb704332749c6c2,2293
+- colour-2.3.6@sha256:ebdcbf15023958838a527e381ab3c3b1e99ed12d1b25efeb7feaa4ad8c37664a,2378
+- conduit-1.3.4.3@sha256:50f2eea690e053c77acc2e66ab403ace55282932f419078e432db5873ab55b3b,5296
+- conduit-extra-1.3.6@sha256:83303e6fea78a683fdbb41682fc8dbc47b1d8830da1f09e88940f9a744a7f984,4355
+- data-default-class-0.1.2.0@sha256:63e62120b7efd733a5a17cf59ceb43268e9a929c748127172d7d42f4a336e327,542
+- gi-freetype2-2.0.2@sha256:3ceda91744fbec02b0f5972822e43f633807929ca0c719bbc1fb3d7598c96f0b,2754
+- happy-1.20.0@sha256:5d47dc221a9fe964e36aaaa2e1ab7e8f085a225fd6528d6eff310b92360bbe99,5732
+- haskell-lexer-1.1@sha256:9e0a7633f6bdb59004c6f3144ebfad1edb9e440fc6a94215c3a1d11bcd8656ef,915
+- regex-base-0.94.0.2@sha256:4ff4425c710cddf440dfbac6cd52310bb6b23e17902390ff71c9fc7eaafc4fcc,2643
+- resourcet-1.3.0@sha256:faa760fb28fb5c98fbe4867e375a775495cabc00926da81fa102dc991017d2c5,1739
+- scientific-0.3.7.0@sha256:517444c944dad9db8235d7b311d7b9a0839a519ee3178288b5a9606256e0c7d8,4840
+- xml-types-0.3.8@sha256:0d1420f967a5f6439dc03f554b4d77cf15f9ff0aa58fa408efc52ca16459119b,1358
+- async-2.2.4@sha256:2b9409023536823233ce3134558565d01b3382e651fa54ac8cb8a99967e023c9,3095
+- blaze-builder-0.4.2.2@sha256:f0017df374c330de0ebe0eb15eae8c48427bddefa1d81a3cb31c0a4812ecdb08,3685
+- hashable-1.4.1.0@sha256:50b2f002c68fe67730ee7a3cd8607486197dd99b084255005ad51ecd6970a41b,5019
+- integer-logarithms-1.0.3.1@sha256:d59bfd1d39808217af2b68789d3c0e57cb7199d47405a276060d88fef4f4017d,3246
+- mono-traversable-1.0.15.3@sha256:059bf3c05cdbef2d06b765333fe41c2168ced2503a23de674e2a59ceb2548c48,2060
+- network-3.1.2.7@sha256:e3d78b13db9512aeb106e44a334ab42b7aa48d26c097299084084cb8be5c5568,4888
+- primitive-0.7.4.0@sha256:89b88a3e08493b7727fa4089b0692bfbdf7e1e666ef54635f458644eb8358764,2857
+- streaming-commons-0.2.2.5@sha256:34959abee70e63d370b5a4bee0bc3483c66d1e53906fb5e13844ae8b9a62a4a3,4813
+- typed-process-0.2.10.1@sha256:cc35b76f2ce32c708cb2f68a1c4f661a8138196d958e34a2f214208333a73f46,2070
+- unliftio-core-0.2.0.1@sha256:f9abcdd3f3d28e4840563efb7b8760d2de9b5707bcd6f53a87f6a0d77bb5a9f7,1082
+- vector-0.13.0.0@sha256:54528e95501742b99462cc543891f21177e7db34d960ce8e3cbb25afb16a9c89,9112
+- random-1.2.1.1@sha256:dea1f11e5569332dc6c8efaad1cb301016a5587b6754943a49f9de08ae0e56d9,6541
+- split-0.2.3.5@sha256:f472fa7019647cacac3267742a6f7ac0a5c816f9890e80e4b826cd937436de87,2646
+- unordered-containers-0.2.19.1@sha256:db11042bb0356c0adea277d0794743829125b4c99455af6af2bd5f7bd5e88a39,3797
+- vector-algorithms-0.9.0.1@sha256:34cc5851ebf2eb80fc62cbb5c6dbe59ab837f1d5366a6c3bf1e09cf34805aaae,3670
+- vector-stream-0.1.0.0@sha256:09b0f8dc4e51936b9d6b04791f0aa03f7c9759b5fb7140eac8a9461cda1e55a3,1404
+- zlib-0.6.3.0@sha256:8214a9d37580f17f8b675109578a5dbe6853559eef156e34dc2233f1123ace33,5216 
+- bitvec-1.1.3.0@sha256:54fea850c9e3d3f8f771d569c0c2b339f2dea1085b6cb9da108bce6594dc9682,4188
+- splitmix-0.1.0.4@sha256:804e2574bc7e32d08cbab91e47ee6287b4df7d50851d73f9e778f94a9a7814c7,6521
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
