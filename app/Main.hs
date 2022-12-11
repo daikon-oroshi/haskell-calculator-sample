@@ -16,10 +16,11 @@ main = do
     root_box <- new Gtk.Box [#orientation := Gtk.OrientationVertical]
     text_view <- new Gtk.Entry [ #maxLength := 11, #editable := False]
     #add root_box text_view
+    buffer <- Gtk.getEntryBuffer text_view
 
     keys_box <- new Gtk.Box [#orientation := Gtk.OrientationHorizontal]
 
-    num_keys_box <- numKeysBox
+    num_keys_box <- numKeysBox buffer
     op_keys_box <- operationKeysBox
 
     #add keys_box num_keys_box
@@ -30,33 +31,33 @@ main = do
     #showAll win
     Gtk.main
 
-numKey :: Int -> IO Gtk.Object.Button
-numKey a = do
+numKey :: Int ->  Gtk.EntryBuffer -> IO Gtk.Object.Button
+numKey a buffer = do
     num_btn <- new Gtk.Button [ #label := T.pack (show a) ]
-    _ <- on num_btn #clicked (print a)
+    _ <- on num_btn #clicked (Gtk.setEntryBufferText buffer $ T.pack (show a))
     return num_btn
 
-numKeysBox :: IO Gtk.Object.Box
-numKeysBox = do
+numKeysBox :: Gtk.EntryBuffer -> IO Gtk.Object.Box
+numKeysBox buffer = do
     numkeys_box <- new Gtk.Box [#orientation := Gtk.OrientationVertical]
 
     row_1 <- new Gtk.HButtonBox []
     mapM_ (\x -> do
-            btn <- numKey x
+            btn <- numKey x buffer
             #add row_1 btn
         ) [1, 2, 3]
     #add numkeys_box row_1
 
     row_2 <- new Gtk.HButtonBox []
     mapM_ (\x -> do
-            btn <- numKey x
+            btn <- numKey x buffer
             #add row_2 btn
         ) [4, 5, 6]
     #add numkeys_box row_2
 
     row_3 <- new Gtk.HButtonBox []
     mapM_ (\x -> do
-            btn <- numKey x
+            btn <- numKey x buffer
             #add row_3 btn
         ) [7, 8, 9]
     #add numkeys_box row_3
