@@ -24,6 +24,7 @@ dependencies:
 - haskell-gi-base
 - gi-gtk
 - text
+- mtl
 
 ghc-options:
 - -Wall
