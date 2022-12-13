@@ -25,6 +25,7 @@ dependencies:
 - gi-gtk
 - text
 - mtl
+- hspec
 
 ghc-options:
 - -Wall
@@ -61,3 +62,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - calculator
+    - hspec

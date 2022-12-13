@@ -5,7 +5,9 @@ module DispValue
         DispVal,
         toNumber,
         addNumber,
-        addDot
+        addDot,
+        zeroDispVal,
+        unitDispVal
     ) where
 
 data DispVal = DispVal {
@@ -78,6 +80,10 @@ instance Show DispVal where
                 ++ if decimal_part dv  == 0
                     then ""
                     else show (decimal_part dv)
+
+instance Eq DispVal where
+    (==) :: DispVal -> DispVal -> Bool
+    dv_1 == dv_2 = toNumber dv_1 == toNumber dv_2
 
 -- 桁数
 numOfDigit :: Int -> Int
