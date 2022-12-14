@@ -25,8 +25,11 @@ source-repository head
 
 library
   exposed-modules:
-      CalcState
+      CalcState.CalcState
+      CalcState.FirstInputState
+      Context
       DispValue
+      Gui
   other-modules:
       Paths_calculator
   hs-source-dirs:
