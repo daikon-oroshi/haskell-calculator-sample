@@ -73,13 +73,15 @@ instance Show DispVal where
     show :: DispVal -> String
     show dv
         | integer_part dv == 0 && decimal_part dv == 0 = "0"
-        | otherwise =
-            if is_positive dv then "" else "-"
-                ++ show (integer_part dv)
-                ++ if has_dot dv then "." else ""
-                ++ if decimal_part dv  == 0
+        | otherwise = concat
+            [
+                if is_positive dv then "" else "-",
+                show (integer_part dv),
+                if has_dot dv then "." else "",
+                if decimal_part dv  == 0
                     then ""
                     else show (decimal_part dv)
+            ]
 
 instance Eq DispVal where
     (==) :: DispVal -> DispVal -> Bool
