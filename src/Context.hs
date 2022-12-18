@@ -1,16 +1,18 @@
-module CalcState(
-
+module Context(
+    setEntry
 ) where
-import Control.Monad.State
 import qualified DispValue as Dv
 import Data.GI.Base.Overloading ( IsDescendantOf )
-import Control.Monad.IO.Class ( MonadIO )
 import qualified GI.Gtk as Gtk.Object
 import qualified GI.Gtk as Gtk
 import qualified Data.Text as T
 
+import Data.IORef
+
 setEntry :: (
     IsDescendantOf Gtk.Object.EntryBuffer o,
-    MonadIO m, Gtk.Object.GObject o
-    ) => o -> Dv.DispVal -> m ()
-setEntry buffer dv = Gtk.setEntryBufferText buffer $ T.pack $ show dv
+    Gtk.Object.GObject o
+    ) => o -> IORef Dv.DispVal -> IO ()
+setEntry buffer dvRef = do
+    dv <- readIORef dvRef
+    Gtk.setEntryBufferText buffer $ T.pack $ show dv

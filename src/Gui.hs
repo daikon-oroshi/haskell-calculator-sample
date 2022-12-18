@@ -7,8 +7,10 @@ import qualified GI.Gtk as Gtk
 import Data.GI.Base ( on, AttrOp((:=)), new )
 import qualified GI.Gtk as Gtk.Object
 import qualified Data.Text as T
-import Data.GI.Base.Overloading ( IsDescendantOf )
-import Control.Monad.IO.Class ( MonadIO )
+import qualified DispValue as Dv
+import Context (setEntry)
+import DispValue (zeroDispVal)
+import Data.IORef
 
 runGui :: IO ()
 runGui = do
@@ -22,47 +24,54 @@ runGui = do
     buffer <- Gtk.getEntryBuffer text_view
 
     keys_box <- new Gtk.Box [#orientation := Gtk.OrientationHorizontal]
-
-    num_keys_box <- numKeysBox buffer
     op_keys_box <- operationKeysBox
+
+    ref <- newIORef zeroDispVal
+    num_keys_box <- numKeysBox buffer ref
 
     #add keys_box num_keys_box
     #add keys_box op_keys_box
     #add root_box keys_box
-
     #add win root_box
     #showAll win
     Gtk.main
 
-numKey :: Int ->  Gtk.EntryBuffer -> IO Gtk.Object.Button
-numKey a buffer = do
+numKeyAction :: Gtk.EntryBuffer ->  IORef Dv.DispVal -> Int -> IO ()
+numKeyAction buffer dvRef a = do
+    modifyIORef dvRef (`Dv.addNumber` a)
+    setEntry buffer dvRef
+
+numKey :: Gtk.EntryBuffer -> IORef Dv.DispVal -> Int -> IO Gtk.Object.Button
+numKey buffer dvRef a = do
     num_btn <- new Gtk.Button [ #label := T.pack (show a) ]
-    _ <- on num_btn #clicked (Gtk.setEntryBufferText buffer $ T.pack (show a))
+    _ <- Gtk.onButtonClicked num_btn $ numKeyAction buffer dvRef a
     return num_btn
 
-numKeysBox :: Gtk.EntryBuffer -> IO Gtk.Object.Box
-numKeysBox buffer = do
+numKeyList :: Gtk.EntryBuffer -> IORef Dv.DispVal -> [Int]-> IO [Gtk.Object.Button]
+numKeyList _ _ [] = return []
+numKeyList buffer dv (x:xs) = do
+    b <- numKey buffer dv x
+    bs <- numKeyList buffer dv xs
+    return $ b:bs
+
+numKeysBox :: Gtk.EntryBuffer -> IORef Dv.DispVal -> IO Gtk.Object.Box
+numKeysBox buffer dvRef = do
+    row1_btns <- numKeyList buffer dvRef [1, 2, 3]
+    row2_btns <- numKeyList buffer dvRef [4, 5, 6]
+    row3_btns <- numKeyList buffer dvRef [7, 8, 9]
+
     numkeys_box <- new Gtk.Box [#orientation := Gtk.OrientationVertical]
 
     row_1 <- new Gtk.HButtonBox []
-    mapM_ (\x -> do
-            btn <- numKey x buffer
-            #add row_1 btn
-        ) [1, 2, 3]
+    mapM_ (#add row_1) row1_btns
     #add numkeys_box row_1
 
     row_2 <- new Gtk.HButtonBox []
-    mapM_ (\x -> do
-            btn <- numKey x buffer
-            #add row_2 btn
-        ) [4, 5, 6]
+    mapM_ (#add row_2) row2_btns
     #add numkeys_box row_2
 
     row_3 <- new Gtk.HButtonBox []
-    mapM_ (\x -> do
-            btn <- numKey x buffer
-            #add row_3 btn
-        ) [7, 8, 9]
+    mapM_ (#add row_3) row3_btns
     #add numkeys_box row_3
 
     row_4 <- new Gtk.HButtonBox []
@@ -79,7 +88,6 @@ numKeysBox buffer = do
     #add row_4 dot_btn
 
     #add numkeys_box row_4
-
     return numkeys_box
 
 operationKeysBox :: IO Gtk.Object.Box

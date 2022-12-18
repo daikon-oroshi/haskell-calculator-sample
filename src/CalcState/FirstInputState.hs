@@ -1,6 +1,6 @@
-module FirstInputState where
+module CalcState.FirstInputState where
 
-import CalcState
+import CalcState.CalcState
 import qualified DispValue as Dv
 
 data FirstInputState = FirstInputState

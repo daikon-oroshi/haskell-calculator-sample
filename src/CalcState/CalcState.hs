@@ -1,5 +1,5 @@
-module CalcState(
-    CalcState,
+module CalcState.CalcState(
+    --CalcState,
     ICalcState,
     --OperationSelectedState,
     --SecondInputState
@@ -8,7 +8,7 @@ module CalcState(
 import qualified DispValue as Dv
 import Control.Monad.State.Lazy
 
-data CalcState = forall a. (ICalcState a) => CalcState a
+--data CalcState = forall a. (ICalcState a) => CalcState a
 --data OperationSelectedState = OperationSelectedState
 --data SecondInputState = SecondInputState
 
