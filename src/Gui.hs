@@ -24,9 +24,9 @@ runGui = do
     buffer <- Gtk.getEntryBuffer text_view
 
     keys_box <- new Gtk.Box [#orientation := Gtk.OrientationHorizontal]
-    op_keys_box <- operationKeysBox
-
     ref <- newIORef zeroDispVal
+
+    op_keys_box <- operationKeysBox buffer ref
     num_keys_box <- numKeysBox buffer ref
 
     #add keys_box num_keys_box
@@ -36,15 +36,31 @@ runGui = do
     #showAll win
     Gtk.main
 
-numKeyAction :: Gtk.EntryBuffer ->  IORef Dv.DispVal -> Int -> IO ()
+numKeyAction :: Gtk.EntryBuffer -> IORef Dv.DispVal -> Int -> IO ()
 numKeyAction buffer dvRef a = do
     modifyIORef dvRef (`Dv.addNumber` a)
+    setEntry buffer dvRef
+
+zeroZeroAction :: Gtk.EntryBuffer -> IORef Dv.DispVal -> IO ()
+zeroZeroAction buffer dvRef = do
+    modifyIORef dvRef (`Dv.addNumber` 0)
+    modifyIORef dvRef (`Dv.addNumber` 0)
+    setEntry buffer dvRef
+
+dotAction :: Gtk.EntryBuffer -> IORef Dv.DispVal -> IO ()
+dotAction buffer dvRef = do
+    modifyIORef dvRef Dv.addDot
+    setEntry buffer dvRef
+
+acAction ::  Gtk.EntryBuffer -> IORef Dv.DispVal -> IO ()
+acAction buffer dvRef = do
+    writeIORef dvRef zeroDispVal
     setEntry buffer dvRef
 
 numKey :: Gtk.EntryBuffer -> IORef Dv.DispVal -> Int -> IO Gtk.Object.Button
 numKey buffer dvRef a = do
     num_btn <- new Gtk.Button [ #label := T.pack (show a) ]
-    _ <- Gtk.onButtonClicked num_btn $ numKeyAction buffer dvRef a
+    _ <- on num_btn #clicked $ numKeyAction buffer dvRef a
     return num_btn
 
 numKeyList :: Gtk.EntryBuffer -> IORef Dv.DispVal -> [Int]-> IO [Gtk.Object.Button]
@@ -76,30 +92,30 @@ numKeysBox buffer dvRef = do
 
     row_4 <- new Gtk.HButtonBox []
     zerozero_btn <- new Gtk.Button [ #label := "00" ]
-    _ <- on zerozero_btn #clicked (putStrLn "00")
+    _ <- on zerozero_btn #clicked $ zeroZeroAction buffer dvRef
     #add row_4 zerozero_btn
 
-    zero_btn <- new Gtk.Button [ #label := "0" ]
-    _ <- on zero_btn #clicked (putStrLn "0")
+    zero_btn <- numKey buffer dvRef 0
     #add row_4 zero_btn
 
     dot_btn <- new Gtk.Button [ #label := "." ]
-    _ <- on dot_btn #clicked (putStrLn ".")
+    _ <- on dot_btn #clicked $ dotAction buffer dvRef
     #add row_4 dot_btn
 
     #add numkeys_box row_4
     return numkeys_box
 
-operationKeysBox :: IO Gtk.Object.Box
-operationKeysBox = do
+operationKeysBox :: Gtk.EntryBuffer -> IORef Dv.DispVal -> IO Gtk.Object.Box
+operationKeysBox buffer dvRef = do
     operations_box <- new Gtk.Box [#orientation := Gtk.OrientationVertical]
 
     row_1 <- new Gtk.HButtonBox []
     percent_btn <- new Gtk.Button [ #label := "%" ]
     _ <- on percent_btn #clicked (putStrLn "%")
     #add row_1 percent_btn
+
     ac_btn <- new Gtk.Button [ #label := "AC" ]
-    _ <- on percent_btn #clicked (putStrLn "AC")
+    _ <- on ac_btn #clicked $ acAction buffer dvRef
     #add row_1 ac_btn
     #add operations_box row_1
 
@@ -117,7 +133,7 @@ operationKeysBox = do
     _ <- on prod_btn #clicked (putStrLn "×")
     #add row_3 prod_btn
     div_btn <- new Gtk.Button [ #label := "÷" ]
-    _ <- on percent_btn #clicked (putStrLn "÷")
+    _ <- on div_btn #clicked (putStrLn "÷")
     #add row_3 div_btn
     #add operations_box row_3
 
