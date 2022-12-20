@@ -1,16 +1,22 @@
+{-# LANGUAGE GADTs, InstanceSigs #-}
 module CalcState (
     CalcState,
-    _csStep,
-    _csCurrentVal,
+    csStep,
+    csCurrentVal,
     CalcStep,
-    ICalcStep,
-    FirstInputStep
-    --OperationSelectedState,
-    --SecondInputState
+    initialState,
+    actionDigit,
+    actionDot,
+    actionZeroZero,
+    actionPm,
+    actionAc,
+    actionC,
+    actionOperation,
+    actionEq,
+    Operation (..)
 ) where
 
 import qualified DispValue as Dv
-import Control.Monad.State.Lazy
 import DispValue (zeroDispVal)
 
 data FirstInputStep = FirstInputStep
@@ -19,179 +25,182 @@ data SecondInputStep = SecondInputStep
 data ResultStep = ResultStep
 data CalcStep = forall s. (ICalcStep s) => CalcStep s
 
-data Operation = Plus | Minus | Prod | Div deriving Eq
+data Operation = Plus | Sub | Prod | Div deriving Eq
 
 data CalcState = CalcState {
-    _csStep :: CalcStep,
-    _csCurrentVal :: Dv.DispVal,
-    _csPrevVal :: Dv.DispVal,
-    _csOperation :: Maybe Operation
+    csStep :: CalcStep,
+    csCurrentVal :: Dv.DispVal,
+    csPrevVal :: Dv.DispVal,
+    csOperation :: Maybe Operation
 }
 
 initialState :: CalcState
 initialState = CalcState {
-    _csStep = CalcStep FirstInputStep,
-    _csCurrentVal = zeroDispVal,
-    _csPrevVal = zeroDispVal,
-    _csOperation = Nothing
+    csStep = CalcStep FirstInputStep,
+    csCurrentVal = zeroDispVal,
+    csPrevVal = zeroDispVal,
+    csOperation = Nothing
 }
 
 class ICalcStep a where
-    onClickNumber :: a -> Int -> State CalcState ()
-    onClickNumber _ num = do
-        modify $ \st -> st {
-            _csCurrentVal = Dv.addNumber (_csCurrentVal st) num
+    actionDigit :: a -> CalcState -> Int -> CalcState
+    actionDigit _ st num =
+        st {
+            csCurrentVal = Dv.addDigit (csCurrentVal st) num
         }
-    onClickDot :: a -> State CalcState ()
-    onClickDot _ = do
-        modify $ \st -> st {
-            _csCurrentVal = Dv.addDot (_csCurrentVal st)
+    actionDot :: a -> CalcState -> CalcState
+    actionDot _ st =
+        st {
+            csCurrentVal = Dv.dot (csCurrentVal st)
         }
-    onClickZeroZero :: a -> State CalcState ()
-    onClickZeroZero _ = do
-        modify $ \st -> st {
-            _csCurrentVal = Dv.addNumber (
-                Dv.addNumber (_csCurrentVal st) 0
+    actionZeroZero :: a -> CalcState -> CalcState
+    actionZeroZero _ st =
+        st {
+            csCurrentVal = Dv.addDigit (
+                Dv.addDigit (csCurrentVal st) 0
             ) 0
         }
-    onClickPm :: a -> State CalcState ()
-    onClickPm _ = do
-        modify $ \st -> st {
-            _csCurrentVal = -(_csCurrentVal st)
+    actionPm :: a -> CalcState -> CalcState
+    actionPm _ st =
+        st {
+            csCurrentVal = -(csCurrentVal st)
         }
-    onClickAc :: a -> State CalcState ()
-    onClickAc _ = do
-        put initialState
-    onClickC :: a -> State CalcState ()
-    onClickC _ = do
-        modify $ \st -> st {
-            _csStep = CalcStep FirstInputStep,
-            _csCurrentVal = zeroDispVal
+    actionAc :: a -> CalcState -> CalcState
+    actionAc _ _ = initialState
+    actionC :: a -> CalcState -> CalcState
+    actionC _ st =
+        st {
+            csStep = CalcStep FirstInputStep,
+            csCurrentVal = zeroDispVal
         }
-    onClickOperation :: a -> Operation -> State CalcState ()
-    onClickEqual :: a -> State CalcState ()
+    actionOperation :: a -> CalcState -> Operation -> CalcState
+    actionEq :: a -> CalcState -> CalcState
 
 instance ICalcStep FirstInputStep where
-    onClickOperation :: FirstInputStep -> Operation -> State CalcState ()
-    onClickOperation _ op = do
-        modify $ \st -> st {
-            _csStep = CalcStep OperationSelectedStep,
-            _csOperation = Just op
+    actionOperation :: FirstInputStep -> CalcState -> Operation -> CalcState
+    actionOperation _ st op =
+        st {
+            csStep = CalcStep OperationSelectedStep,
+            csOperation = Just op
         }
-    onClickEqual :: FirstInputStep -> State CalcState ()
-    onClickEqual _ = do
-        modify $ \st -> st {
-            _csStep = CalcStep ResultStep
+    actionEq :: FirstInputStep -> CalcState -> CalcState
+    actionEq _ st =
+        st {
+            csStep = CalcStep ResultStep
         }
 
 instance ICalcStep OperationSelectedStep where
-    onClickNumber :: a -> Int -> State CalcState ()
-    onClickNumber _ num = do
-        modify $ \st -> st {
-            _csStep = CalcStep SecondInputStep,
-            _csPrevVal = _csCurrentVal st,
-            _csCurrentVal = Dv.addNumber zeroDispVal num
+    actionDigit :: OperationSelectedStep -> CalcState -> Int -> CalcState
+    actionDigit _ st num =
+        st {
+            csStep = CalcStep SecondInputStep,
+            csPrevVal = csCurrentVal st,
+            csCurrentVal = Dv.addDigit zeroDispVal num
         }
-    onClickDot :: a -> State CalcState ()
-    onClickDot _ = do
-        modify $ \st -> st {
-            _csStep = CalcStep SecondInputStep,
-            _csPrevVal = _csCurrentVal st,
-            _csCurrentVal = Dv.addDot zeroDispVal
+    actionDot :: OperationSelectedStep -> CalcState -> CalcState
+    actionDot _ st =
+        st {
+            csStep = CalcStep SecondInputStep,
+            csPrevVal = csCurrentVal st,
+            csCurrentVal = Dv.dot zeroDispVal
         }
-    onClickZeroZero :: a -> State CalcState ()
-    onClickZeroZero _ = do
-        modify $ \st -> st {
-            _csStep = CalcStep SecondInputStep,
-            _csPrevVal = _csCurrentVal st,
-            _csCurrentVal = Dv.addNumber (
-                Dv.addNumber zeroDispVal 0
+    actionZeroZero :: OperationSelectedStep -> CalcState -> CalcState
+    actionZeroZero _ st =
+        st {
+            csStep = CalcStep SecondInputStep,
+            csPrevVal = csCurrentVal st,
+            csCurrentVal = Dv.addDigit (
+                Dv.addDigit zeroDispVal 0
             ) 0
         }
-    onClickPm :: a -> State CalcState ()
-    onClickPm _ = return ()
+    actionPm :: OperationSelectedStep -> CalcState -> CalcState
+    actionPm _ st = st
 
-    onClickOperation :: OperationSelectedStep -> Operation -> State CalcState ()
-    onClickOperation _ op = do
-        modify $ \st -> st {
-            _csOperation = Just op
+    actionOperation :: OperationSelectedStep ->CalcState -> Operation -> CalcState
+    actionOperation _ st op =
+        st {
+            csOperation = Just op
         }
-    onClickEqual :: OperationSelectedStep -> State CalcState ()
-    onClickEqual _ = do modify $ \st -> st {
-        _csStep = CalcStep ResultStep,
-        _csOperation = Nothing
-    }
+    actionEq :: OperationSelectedStep -> CalcState -> CalcState
+    actionEq _ st =
+        st {
+            csStep = CalcStep ResultStep,
+            csOperation = Nothing
+        }
 
 instance ICalcStep SecondInputStep where
-    onClickOperation :: SecondInputStep -> Operation -> State CalcState ()
-    onClickOperation _ op = do
-        modify $ \st -> st {
-            _csStep = CalcStep OperationSelectedStep,
-            _csOperation = Just op
+    actionOperation :: SecondInputStep -> CalcState -> Operation -> CalcState
+    actionOperation _ st op =
+        st {
+            csStep = CalcStep OperationSelectedStep,
+            csOperation = Just op
         }
-    onClickEqual :: SecondInputStep -> State CalcState ()
-    onClickEqual _ = do modify $ \st -> st {
-        _csStep = CalcStep ResultStep,
-        _csCurrentVal = calc (_csCurrentVal st) (_csPrevVal st) (_csOperation st),
-        _csPrevVal = zeroDispVal,
-        _csOperation = Nothing
-    }
+    actionEq :: SecondInputStep -> CalcState -> CalcState
+    actionEq _ st =
+        st {
+            csStep = CalcStep ResultStep,
+            csCurrentVal = calc (csCurrentVal st) (csPrevVal st) (csOperation st),
+            csPrevVal = zeroDispVal,
+            csOperation = Nothing
+        }
 
 instance ICalcStep ResultStep where
-    onClickNumber :: ResultStep -> Int -> State CalcState ()
-    onClickNumber _ num = do
-        modify $ \st -> st {
-            _csCurrentVal = Dv.addNumber zeroDispVal num
+    actionDigit :: ResultStep -> CalcState -> Int -> CalcState
+    actionDigit _ st num =
+        st {
+            csStep = CalcStep FirstInputStep,
+            csCurrentVal = Dv.addDigit zeroDispVal num
         }
-    onClickDot :: ResultStep -> State CalcState ()
-    onClickDot _ = do
-        modify $ \st -> st {
-            _csCurrentVal = Dv.addDot zeroDispVal
+    actionDot :: ResultStep -> CalcState -> CalcState
+    actionDot _ st =
+        st {
+            csStep = CalcStep FirstInputStep,
+            csCurrentVal = Dv.dot zeroDispVal
         }
-    onClickZeroZero :: ResultStep -> State CalcState ()
-    onClickZeroZero _ = do
-        modify $ \st -> st {
-            _csCurrentVal = Dv.addNumber (
-                Dv.addNumber zeroDispVal 0
+    actionZeroZero :: ResultStep -> CalcState -> CalcState
+    actionZeroZero _ st =
+        st {
+            csStep = CalcStep FirstInputStep,
+            csCurrentVal = Dv.addDigit (
+                Dv.addDigit zeroDispVal 0
             ) 0
         }
-    onClickPm :: ResultStep -> State CalcState ()
-    onClickPm _ = do
-        modify $ \st -> st {
-            _csCurrentVal = -(_csCurrentVal st)
+    actionPm :: ResultStep -> CalcState -> CalcState
+    actionPm _ st =
+        st {
+            csCurrentVal = -(csCurrentVal st)
         }
-    onClickOperation :: ResultStep -> Operation -> State CalcState ()
-    onClickOperation _ op = do
-        modify $ \st -> st {
-            _csStep = CalcStep OperationSelectedStep,
-            _csOperation = Just op
+    actionOperation :: ResultStep -> CalcState -> Operation -> CalcState
+    actionOperation _ st op =
+        st {
+            csStep = CalcStep OperationSelectedStep,
+            csOperation = Just op
         }
-    onClickEqual :: ResultStep -> State CalcState ()
-    onClickEqual _ = return ()
+    actionEq :: ResultStep -> CalcState -> CalcState
+    actionEq _ st = st
 
 instance ICalcStep CalcStep where
-    onClickNumber :: CalcStep -> Int -> State CalcState ()
-    onClickNumber (CalcStep s) = onClickNumber s
-    onClickDot ::  CalcStep -> State CalcState ()
-    onClickDot (CalcStep s) = onClickDot s
-    onClickZeroZero :: CalcStep -> State CalcState ()
-    onClickZeroZero (CalcStep s) = onClickZeroZero s
-    onClickPm :: CalcStep -> State CalcState ()
-    onClickPm (CalcStep s) = onClickPm s
-    onClickAc :: CalcStep -> State CalcState ()
-    onClickAc (CalcStep s) = onClickAc s
-    onClickOperation :: CalcStep -> Operation -> State CalcState ()
-    onClickOperation (CalcStep s) = onClickOperation s
-    onClickC :: CalcStep -> State CalcState ()
-    onClickC (CalcStep s) = onClickC s
-    onClickEqual :: CalcStep -> State CalcState ()
-    onClickEqual (CalcStep s) = onClickEqual s
+    actionDigit :: CalcStep -> CalcState -> Int -> CalcState
+    actionDigit (CalcStep s) = actionDigit s
+    actionDot ::  CalcStep -> CalcState -> CalcState
+    actionDot (CalcStep s) = actionDot s
+    actionZeroZero :: CalcStep -> CalcState -> CalcState
+    actionZeroZero (CalcStep s) = actionZeroZero s
+    actionPm :: CalcStep -> CalcState -> CalcState
+    actionPm (CalcStep s) = actionPm s
+    actionAc :: CalcStep -> CalcState -> CalcState
+    actionAc (CalcStep s) = actionAc s
+    actionOperation :: CalcStep -> CalcState -> Operation -> CalcState
+    actionOperation (CalcStep s) = actionOperation s
+    actionC :: CalcStep -> CalcState -> CalcState
+    actionC (CalcStep s) = actionC s
+    actionEq :: CalcStep -> CalcState -> CalcState
+    actionEq (CalcStep s) = actionEq s
 
 calc :: Dv.DispVal -> Dv.DispVal -> Maybe Operation -> Dv.DispVal
 calc _ _ Nothing = zeroDispVal
 calc dv1 dv2 (Just x)
     | x == Plus = dv1 + dv2
-    | x == Minus = dv1 - dv2
+    | x == Sub = dv1 - dv2
     | x == Prod = dv1 * dv2
-    | x == Div = dv1 / dv2
-    | otherwise = zeroDispVal
+    | otherwise = dv1 / dv2

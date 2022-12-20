@@ -4,8 +4,8 @@ module DispValue
     (
         DispVal,
         toNumber,
-        addNumber,
-        addDot,
+        addDigit,
+        dot,
         zeroDispVal,
         unitDispVal
     ) where
@@ -88,11 +88,11 @@ instance Eq DispVal where
     dv_1 == dv_2 = toNumber dv_1 == toNumber dv_2
 
 -- 桁数
-numOfDigit :: Int -> Int
-numOfDigit x
+numOfDigits :: Int -> Int
+numOfDigits x
     | x == 0 = 1
     | x > 0 = ceiling $ logBase (10::Double) $ realToFrac x
-    | otherwise = numOfDigit $ -x
+    | otherwise = numOfDigits $ -x
 
 toNumber :: DispVal -> Float
 toNumber dval =
@@ -101,7 +101,7 @@ toNumber dval =
             fromIntegral (integer_part dval)
             + (
                 fromIntegral (decimal_part dval)
-                / 10 ^ numOfDigit (decimal_part dval)
+                / 10 ^ numOfDigits (decimal_part dval)
             )
         )
 
@@ -114,23 +114,23 @@ fromNumber d =
         decimal_part = floor $ abs (snd (properFraction d)) * 10^limitOfDigit
     }
 
-addNumberToLast :: Int -> Int -> Int
-addNumberToLast s t
+addDigitToLast :: Int -> Int -> Int
+addDigitToLast s t
     | s == 0 = t
     | otherwise = s * 10 + t
 
-addNumber :: DispVal -> Int -> DispVal
-addNumber val a =
+addDigit :: DispVal -> Int -> DispVal
+addDigit val a =
     if has_dot val
         then val {
-            decimal_part = addNumberToLast (decimal_part val) a
+            decimal_part = addDigitToLast (decimal_part val) a
         }
         else val {
-            integer_part = addNumberToLast (integer_part val) a
+            integer_part = addDigitToLast (integer_part val) a
         }
 
-addDot :: DispVal -> DispVal
-addDot val
+dot :: DispVal -> DispVal
+dot val
     | not $ has_dot val
         = val {
             has_dot = True

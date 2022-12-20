@@ -12,7 +12,6 @@ import Data.IORef
 setEntry :: (
     IsDescendantOf Gtk.Object.EntryBuffer o,
     Gtk.Object.GObject o
-    ) => o -> IORef Dv.DispVal -> IO ()
-setEntry buffer dvRef = do
-    dv <- readIORef dvRef
+    ) => o -> Dv.DispVal -> IO ()
+setEntry buffer dv = do
     Gtk.setEntryBufferText buffer $ T.pack $ show dv
