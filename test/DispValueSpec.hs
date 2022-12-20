@@ -1,37 +1,51 @@
 module DispValueSpec (spec) where
 
-import Test.Hspec
-import DispValue ( unitDispVal, zeroDispVal, addNumber )
+import Test.Hspec ( describe, it, shouldBe, Spec, Expectation )
+import DispValue ( unitDispVal, zeroDispVal, addDigit, DispVal )
 
-testAddDispValue :: Expectation
-testAddDispValue = (zeroDispVal + unitDispVal) `shouldBe` unitDispVal
+testAdd1 :: Expectation
+testAdd1 = (zeroDispVal + unitDispVal) `shouldBe` unitDispVal
 
-testShowUnitDispValue :: Expectation
-testShowUnitDispValue = show unitDispVal `shouldBe` "1"
+testShowUnit :: Expectation
+testShowUnit = show unitDispVal `shouldBe` "1"
 
-testShowMinusUnitDispValue :: Expectation
-testShowMinusUnitDispValue = show (negate unitDispVal) `shouldBe` "-1"
+testShowNegateUnit :: Expectation
+testShowNegateUnit = show (negate unitDispVal) `shouldBe` "-1"
 
-testAddNumberToZero :: Expectation
-testAddNumberToZero = show (addNumber zeroDispVal 1) `shouldBe` "1"
+testAddDigitToZero :: Expectation
+testAddDigitToZero = show (addDigit zeroDispVal 1) `shouldBe` "1"
 
-testAddNumber :: Expectation
-testAddNumber = show (addNumber unitDispVal 1) `shouldBe` "11"
+testAddDigit :: Expectation
+testAddDigit = show (addDigit unitDispVal 1) `shouldBe` "11"
 
+testProd :: Expectation
+testProd =
+    show (dv1 * dv2) `shouldBe` "45"
+    where
+        dv1 = 5 :: DispVal
+        dv2 = 9 :: DispVal
+
+tests :: [(String, [(String, Expectation)])]
+tests = [
+        ("testPlus", [
+            ("0と1の足し算", testAdd1)
+        ])
+        , ("testShow", [
+            ("1", testShowUnit)
+            , ("nagate 1", testShowNegateUnit)
+        ])
+        , ("testAddDigit",[
+            ("0に追加", testAddDigitToZero)
+            , ("1に1を追加", testAddDigit)
+        ] )
+        , ("testProd", [
+            ("5 * 9", testProd)
+        ])
+    ]
 
 spec :: Spec
 spec = do
-    describe "testAddDispValue" $
-        it "0 と 1の足し算" testAddDispValue
-
-    describe "testShowUnitDispValue" $
-        it "1の表示" testShowUnitDispValue
-
-    describe "testShowMinusUnitDispValue" $
-        it "-1の表示" testShowMinusUnitDispValue
-
-    describe "testAddNumberToZero" $
-        it "数字の追加" testAddNumberToZero
-
-    describe "testAddNumber" $
-        it "数字の追加" testAddNumber
+    mapM_ (\(n, p) ->
+            describe n $ do
+                mapM_ (uncurry it) p
+        ) tests

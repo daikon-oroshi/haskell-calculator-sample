@@ -3,7 +3,6 @@ module CalcState (
     CalcState,
     csStep,
     csCurrentVal,
-    CalcStep,
     initialState,
     actionDigit,
     actionDot,
@@ -19,20 +18,22 @@ module CalcState (
 import qualified DispValue as Dv
 import DispValue (zeroDispVal)
 
-data FirstInputStep = FirstInputStep
-data OperationSelectedStep = OperationSelectedStep
-data SecondInputStep = SecondInputStep
-data ResultStep = ResultStep
-data CalcStep = forall s. (ICalcStep s) => CalcStep s
+data FirstInputStep = FirstInputStep deriving Show
+data OperationSelectedStep = OperationSelectedStep deriving Show
+data SecondInputStep = SecondInputStep deriving Show
+data ResultStep = ResultStep deriving Show
+data CalcStep = forall s. (ICalcStep s, Show s) => CalcStep s
+instance Show CalcStep where
+    show (CalcStep s) = "CalcStep" ++ show s
 
-data Operation = Plus | Sub | Prod | Div deriving Eq
+data Operation = Plus | Sub | Prod | Div deriving (Show, Eq)
 
 data CalcState = CalcState {
     csStep :: CalcStep,
     csCurrentVal :: Dv.DispVal,
     csPrevVal :: Dv.DispVal,
     csOperation :: Maybe Operation
-}
+} deriving Show
 
 initialState :: CalcState
 initialState = CalcState {
