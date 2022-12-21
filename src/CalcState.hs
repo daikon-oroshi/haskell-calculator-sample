@@ -140,7 +140,7 @@ instance ICalcStep SecondInputStep where
     actionEq _ st =
         st {
             csStep = CalcStep ResultStep,
-            csCurrentVal = calc (csCurrentVal st) (csPrevVal st) (csOperation st),
+            csCurrentVal = calc (csPrevVal st) (csCurrentVal st) (csOperation st),
             csPrevVal = zeroDispVal,
             csOperation = Nothing
         }

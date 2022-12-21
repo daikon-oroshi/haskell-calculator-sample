@@ -2,19 +2,20 @@
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 module DispValue
     (
-        DispVal,
+        DispVal (..),
         toNumber,
         addDigit,
         dot,
         zeroDispVal,
-        unitDispVal
+        unitDispVal,
+        numOfDigits,
     ) where
 
+import Debug.Trace ( traceShowId )
+
 data DispVal = DispVal {
-    is_positive :: Bool,
-    has_dot :: Bool,
-    integer_part :: Int,
-    decimal_part :: Int
+    _exponent :: Maybe Int,
+    _significand :: Int
 }
 
 limitOfDigit :: Int
@@ -22,45 +23,40 @@ limitOfDigit = 12
 
 zeroDispVal :: DispVal
 zeroDispVal = DispVal {
-    is_positive = True,
-    has_dot = False,
-    integer_part = 0,
-    decimal_part = 0
+    _exponent = Nothing,
+    _significand = 0
 }
 
 unitDispVal :: DispVal
 unitDispVal = DispVal {
-    is_positive = True,
-    has_dot = False,
-    integer_part = 1,
-    decimal_part = 0
+    _exponent = Nothing,
+    _significand = 1
 }
 
 instance Num DispVal where
     (+) :: DispVal -> DispVal -> DispVal
-    dv_1 + dv_2 = fromNumber $ toNumber dv_1 + toNumber dv_2
+    dv_1 + dv_2 = normalize $ fromNumber (toNumber dv_1 + toNumber dv_2)
 
     (-) :: DispVal -> DispVal -> DispVal
-    dv_1 - dv_2 = fromNumber $ toNumber dv_1 - toNumber dv_2
+    dv_1 - dv_2 = normalize $ fromNumber $ toNumber dv_1 - toNumber dv_2
 
     (*) :: DispVal -> DispVal -> DispVal
-    dv_1 * dv_2 = fromNumber $ toNumber dv_1 * toNumber dv_2
+    dv_1 * dv_2 = normalize $ fromNumber $ toNumber dv_1 * toNumber dv_2
 
     abs :: DispVal -> DispVal
-    abs dv = dv {is_positive = True}
+    abs dv = dv {_significand = abs (_significand dv)}
 
     signum :: DispVal -> DispVal
     signum dv
-        | integer_part dv == 0 && decimal_part dv == 0 = zeroDispVal
-        | is_positive dv = unitDispVal
-        | otherwise = unitDispVal {is_positive = False}
+        | _significand dv == 0 = zeroDispVal
+        | _significand dv > 0 = unitDispVal
+        | otherwise = unitDispVal {_significand = -1}
 
+    -- TODO: 桁溢れ
     fromInteger :: Integer -> DispVal
     fromInteger x = DispVal {
-        is_positive = x > 0,
-        has_dot = False,
-        integer_part = fromInteger (mod x 10^limitOfDigit) :: Int,
-        decimal_part = 0
+        _exponent = Nothing,
+        _significand = fromIntegral x
     }
 
 instance Fractional DispVal where
@@ -71,17 +67,29 @@ instance Fractional DispVal where
 
 instance Show DispVal where
     show :: DispVal -> String
-    show dv
-        | integer_part dv == 0 && decimal_part dv == 0 = "0"
-        | otherwise = concat
-            [
-                if is_positive dv then "" else "-",
-                show (integer_part dv),
-                if has_dot dv then "." else "",
-                if decimal_part dv  == 0
-                    then ""
-                    else show (decimal_part dv)
-            ]
+    show DispVal {
+            _exponent = Nothing,
+            _significand = x
+        } = show x
+    show DispVal {
+            _exponent = Just e,
+            _significand = x
+        }
+        | x == 0 =
+            "0." ++ concat (replicate e "0")
+        | otherwise =
+            let
+                sign_str = if x > 0 then "" else "-"
+                abs_x = abs x
+                digits = numOfDigits abs_x
+            in
+                if digits > e
+                then
+                    let
+                        (int_part, deci_part) = splitAt (digits - e) $ show abs_x
+                    in sign_str ++ int_part ++ "." ++ deci_part
+                else
+                    sign_str ++ "0." ++ concat (replicate (e - digits) "0") ++ show abs_x
 
 instance Eq DispVal where
     (==) :: DispVal -> DispVal -> Bool
@@ -91,52 +99,74 @@ instance Eq DispVal where
 numOfDigits :: Int -> Int
 numOfDigits x
     | x == 0 = 1
-    | x > 0 = ceiling $ logBase (10::Double) $ realToFrac x
+    | x > 0 = 1 + floor (logBase (10::Double) $ realToFrac x)
     | otherwise = numOfDigits $ -x
 
-toNumber :: DispVal -> Float
-toNumber dval =
-    if is_positive dval then 1 else -1
-        * (
-            fromIntegral (integer_part dval)
-            + (
-                fromIntegral (decimal_part dval)
-                / 10 ^ numOfDigits (decimal_part dval)
-            )
-        )
+toNumber :: DispVal -> Double
+toNumber DispVal {_exponent = Nothing, _significand = x}
+    = fromIntegral x
+toNumber DispVal {_exponent = Just e, _significand = x}
+    = fromIntegral x / (10^e)
 
+-- TODO: 桁溢れ
 fromNumber :: (RealFrac a) => a -> DispVal
 fromNumber d =
-    DispVal {
-        is_positive = d > 0,
-        has_dot = abs (snd (properFraction d)) > 0,
-        integer_part = floor $ abs d,
-        decimal_part = floor $ abs (snd (properFraction d)) * 10^limitOfDigit
-    }
+    let
+        sign = if d >= 0 then 1 else -1
+        int_part_digits = numOfDigits $ floor $ abs d
+        e = max 0 $ limitOfDigit - int_part_digits
+    in
+        normalize DispVal {
+            _exponent = if e == 0 then Nothing else Just e,
+            _significand = sign * floor (abs d * 10^e)
+        }
 
 addDigitToLast :: Int -> Int -> Int
-addDigitToLast s t
-    | s == 0 = t
-    | otherwise = s * 10 + t
+addDigitToLast 0 t = t
+addDigitToLast s t = s * 10 + t
 
 addDigit :: DispVal -> Int -> DispVal
-addDigit val a =
-    if has_dot val
-        then val {
-            decimal_part = addDigitToLast (decimal_part val) a
-        }
-        else val {
-            integer_part = addDigitToLast (integer_part val) a
-        }
+addDigit DispVal {_exponent = Nothing, _significand = x} a
+    = DispVal {
+        _exponent = Nothing,
+        _significand = addDigitToLast x a
+    }
+addDigit DispVal {_exponent = Just e, _significand = 0} 0
+    = DispVal {
+        _exponent = Just (e + 1),
+        _significand = 0
+    }
+addDigit DispVal {_exponent = Just e, _significand = x} a
+    = DispVal {
+        _exponent = Just (e + 1),
+        _significand = addDigitToLast x a
+    }
 
 dot :: DispVal -> DispVal
-dot val
-    | not $ has_dot val
-        = val {
-            has_dot = True
-        }
-    | has_dot val && decimal_part val == 0
-        = val {
-            has_dot = False
-        }
-    | otherwise = val
+dot DispVal {_exponent = Nothing, _significand = x}
+    = DispVal {_exponent = Just 0, _significand = x}
+dot dv = dv
+
+-- 小数点以下の末尾0削除
+normalize :: DispVal -> DispVal
+normalize DispVal {_exponent = Nothing, _significand = x}
+    = DispVal {_exponent = Nothing, _significand = x}
+normalize DispVal {_exponent = Just 0, _significand = x}
+    = DispVal {_exponent = Nothing, _significand = x}
+normalize DispVal {_exponent = e, _significand = 0}
+    = DispVal {_exponent = e, _significand = 0}
+normalize DispVal {_exponent = Just e, _significand = x}
+    | -9 <= x && x <= 9 = DispVal {_exponent = Just e, _significand = x}
+    | otherwise =
+        let
+            sign = signum x
+            abs_x = abs x
+            _tail = mod abs_x 10
+        in
+            if _tail /= 0 then
+                DispVal {_exponent = Just e, _significand = x}
+            else
+                normalize DispVal {
+                    _exponent = Just (e - 1),
+                    _significand = sign * (abs_x `div` 10)
+                }

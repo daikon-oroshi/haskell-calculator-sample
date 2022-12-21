@@ -19,11 +19,13 @@ runGui = do
 
     root_box <- new Gtk.Box [#orientation := Gtk.OrientationVertical]
     text_view <- new Gtk.Entry [ #maxLength := 11, #editable := False]
+    _ <- Gtk.entrySetAlignment text_view 1
     #add root_box text_view
     buffer <- Gtk.getEntryBuffer text_view
 
     keys_box <- new Gtk.Box [#orientation := Gtk.OrientationHorizontal]
     ref <- newIORef initialState
+    setEntry buffer ref
 
     op_keys_box <- operationKeysBox buffer ref
     num_keys_box <- numKeysBox buffer ref
