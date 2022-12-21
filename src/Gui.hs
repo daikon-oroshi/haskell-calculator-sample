@@ -86,6 +86,13 @@ onClickEq buffer csRef = do
         )
     setEntry buffer csRef
 
+onClickPm :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO ()
+onClickPm buffer csRef = do
+    modifyIORef csRef (
+            \cs -> Cs.actionPm (Cs.csStep cs) cs
+        )
+    setEntry buffer csRef
+
 numKey :: Gtk.EntryBuffer -> IORef Cs.CalcState -> Int -> IO Gtk.Object.Button
 numKey buffer csRef a = do
     num_btn <- new Gtk.Button [ #label := T.pack (show a) ]
@@ -168,9 +175,15 @@ operationKeysBox buffer csRef = do
     #add operations_box row_3
 
     row_4 <- new Gtk.HButtonBox []
+
+    pm_btn <- new Gtk.Button [ #label := "±" ]
+    _ <- on pm_btn #clicked $ onClickPm buffer csRef
+    #add row_4 pm_btn
+
     equal_btn <- new Gtk.Button [ #label := "=" ]
     _ <- on equal_btn #clicked $ onClickEq buffer csRef
     #add row_4 equal_btn
+
     #add operations_box row_4
 
     return operations_box

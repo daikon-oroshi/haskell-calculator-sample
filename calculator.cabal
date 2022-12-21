@@ -28,6 +28,7 @@ library
       CalcState
       DispValue
       Gui
+      Utility
   other-modules:
       Paths_calculator
   hs-source-dirs:

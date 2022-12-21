@@ -1,17 +1,10 @@
 {-# LANGUAGE GADTs, InstanceSigs #-}
 module CalcState (
     CalcState,
+    ICalcStep(..),
     csStep,
     csCurrentVal,
     initialState,
-    actionDigit,
-    actionDot,
-    actionZeroZero,
-    actionPm,
-    actionAc,
-    actionC,
-    actionOperation,
-    actionEq,
     Operation (..)
 ) where
 
@@ -33,7 +26,7 @@ data CalcState = CalcState {
     csCurrentVal :: Dv.DispVal,
     csPrevVal :: Dv.DispVal,
     csOperation :: Maybe Operation
-} deriving Show
+}
 
 initialState :: CalcState
 initialState = CalcState {
@@ -45,9 +38,9 @@ initialState = CalcState {
 
 class ICalcStep a where
     actionDigit :: a -> CalcState -> Int -> CalcState
-    actionDigit _ st num =
+    actionDigit _ st d =
         st {
-            csCurrentVal = Dv.addDigit (csCurrentVal st) num
+            csCurrentVal = Dv.addDigitToLast (csCurrentVal st) d
         }
     actionDot :: a -> CalcState -> CalcState
     actionDot _ st =
@@ -57,8 +50,8 @@ class ICalcStep a where
     actionZeroZero :: a -> CalcState -> CalcState
     actionZeroZero _ st =
         st {
-            csCurrentVal = Dv.addDigit (
-                Dv.addDigit (csCurrentVal st) 0
+            csCurrentVal = Dv.addDigitToLast (
+                Dv.addDigitToLast (csCurrentVal st) 0
             ) 0
         }
     actionPm :: a -> CalcState -> CalcState
@@ -92,11 +85,11 @@ instance ICalcStep FirstInputStep where
 
 instance ICalcStep OperationSelectedStep where
     actionDigit :: OperationSelectedStep -> CalcState -> Int -> CalcState
-    actionDigit _ st num =
+    actionDigit _ st d =
         st {
             csStep = CalcStep SecondInputStep,
             csPrevVal = csCurrentVal st,
-            csCurrentVal = Dv.addDigit zeroDispVal num
+            csCurrentVal = Dv.addDigitToLast zeroDispVal d
         }
     actionDot :: OperationSelectedStep -> CalcState -> CalcState
     actionDot _ st =
@@ -110,8 +103,8 @@ instance ICalcStep OperationSelectedStep where
         st {
             csStep = CalcStep SecondInputStep,
             csPrevVal = csCurrentVal st,
-            csCurrentVal = Dv.addDigit (
-                Dv.addDigit zeroDispVal 0
+            csCurrentVal = Dv.addDigitToLast (
+                Dv.addDigitToLast zeroDispVal 0
             ) 0
         }
     actionPm :: OperationSelectedStep -> CalcState -> CalcState
@@ -144,13 +137,18 @@ instance ICalcStep SecondInputStep where
             csPrevVal = zeroDispVal,
             csOperation = Nothing
         }
+    actionC :: a -> CalcState -> CalcState
+    actionC _ st =
+        st {
+            csCurrentVal = zeroDispVal
+        }
 
 instance ICalcStep ResultStep where
     actionDigit :: ResultStep -> CalcState -> Int -> CalcState
-    actionDigit _ st num =
+    actionDigit _ st d =
         st {
             csStep = CalcStep FirstInputStep,
-            csCurrentVal = Dv.addDigit zeroDispVal num
+            csCurrentVal = Dv.addDigitToLast zeroDispVal d
         }
     actionDot :: ResultStep -> CalcState -> CalcState
     actionDot _ st =
@@ -162,13 +160,14 @@ instance ICalcStep ResultStep where
     actionZeroZero _ st =
         st {
             csStep = CalcStep FirstInputStep,
-            csCurrentVal = Dv.addDigit (
-                Dv.addDigit zeroDispVal 0
+            csCurrentVal = Dv.addDigitToLast (
+                Dv.addDigitToLast zeroDispVal 0
             ) 0
         }
     actionPm :: ResultStep -> CalcState -> CalcState
     actionPm _ st =
         st {
+            csStep = CalcStep FirstInputStep,
             csCurrentVal = -(csCurrentVal st)
         }
     actionOperation :: ResultStep -> CalcState -> Operation -> CalcState
@@ -198,8 +197,8 @@ instance ICalcStep CalcStep where
     actionEq :: CalcStep -> CalcState -> CalcState
     actionEq (CalcStep s) = actionEq s
 
-calc :: Dv.DispVal -> Dv.DispVal -> Maybe Operation -> Dv.DispVal
-calc _ _ Nothing = zeroDispVal
+calc :: Fractional a => a -> a -> Maybe Operation -> a
+calc _ _ Nothing = 0
 calc dv1 dv2 (Just x)
     | x == Plus = dv1 + dv2
     | x == Sub = dv1 - dv2

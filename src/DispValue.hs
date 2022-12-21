@@ -4,13 +4,15 @@ module DispValue
     (
         DispVal (..),
         toNumber,
-        addDigit,
         dot,
+        addDigitToLast,
         zeroDispVal,
         unitDispVal,
         numOfDigits,
     ) where
 
+import Utility (IsDigits(..))
+import Data.Maybe ( isNothing, isJust )
 import Debug.Trace ( traceShowId )
 
 data DispVal = DispVal {
@@ -35,13 +37,13 @@ unitDispVal = DispVal {
 
 instance Num DispVal where
     (+) :: DispVal -> DispVal -> DispVal
-    dv_1 + dv_2 = normalize $ fromNumber (toNumber dv_1 + toNumber dv_2)
+    dv_1 + dv_2 = fromNumber (toNumber dv_1 + toNumber dv_2)
 
     (-) :: DispVal -> DispVal -> DispVal
-    dv_1 - dv_2 = normalize $ fromNumber $ toNumber dv_1 - toNumber dv_2
+    dv_1 - dv_2 = fromNumber $ toNumber dv_1 - toNumber dv_2
 
     (*) :: DispVal -> DispVal -> DispVal
-    dv_1 * dv_2 = normalize $ fromNumber $ toNumber dv_1 * toNumber dv_2
+    dv_1 * dv_2 = fromNumber $ toNumber dv_1 * toNumber dv_2
 
     abs :: DispVal -> DispVal
     abs dv = dv {_significand = abs (_significand dv)}
@@ -52,9 +54,8 @@ instance Num DispVal where
         | _significand dv > 0 = unitDispVal
         | otherwise = unitDispVal {_significand = -1}
 
-    -- TODO: 桁溢れ
     fromInteger :: Integer -> DispVal
-    fromInteger x = DispVal {
+    fromInteger x = takeTop limitOfDigit DispVal {
         _exponent = Nothing,
         _significand = fromIntegral x
     }
@@ -95,12 +96,64 @@ instance Eq DispVal where
     (==) :: DispVal -> DispVal -> Bool
     dv_1 == dv_2 = toNumber dv_1 == toNumber dv_2
 
--- 桁数
-numOfDigits :: Int -> Int
-numOfDigits x
-    | x == 0 = 1
-    | x > 0 = 1 + floor (logBase (10::Double) $ realToFrac x)
-    | otherwise = numOfDigits $ -x
+instance IsDigits DispVal where
+    numOfDigits :: DispVal -> Int
+    numOfDigits DispVal {_exponent = Nothing, _significand = x}
+        = numOfDigits x
+    numOfDigits DispVal {_exponent = Just e, _significand = x}
+        = max (e + 1) (numOfDigits x)
+
+    getLastDigits :: DispVal -> Int
+    getLastDigits = getLastDigits . _significand
+
+    addDigitToLast :: DispVal -> Int -> DispVal
+    addDigitToLast dv a
+        | numOfDigits dv > limitOfDigit = dv
+        | isNothing (_exponent dv)
+            = dv {
+                _significand = addDigitToLast (_significand dv) a
+            }
+        | isJust (_exponent dv) && a == 0 && _significand dv == 0
+            = dv {
+                _exponent = fmap (+1) (_exponent dv),
+                _significand = 0
+            }
+        | otherwise =
+            DispVal {
+                _exponent = fmap (+1) (_exponent dv),
+                _significand = addDigitToLast (_significand dv) a
+            }
+
+    takeTop :: Int -> DispVal -> DispVal
+    takeTop
+        n DispVal {
+            _exponent = Nothing,
+            _significand = x
+        }
+        = DispVal {
+            _exponent = Nothing,
+            _significand = takeTop n x
+        }
+    takeTop n DispVal {
+            _exponent = Just e,
+            _significand = x
+        }
+        | e < numOfDigits x
+            = let
+                deleted_ditit_num = max 0 (numOfDigits x - n)
+            in
+                normalize DispVal {
+                    _exponent = Just $ max 0 (e - deleted_ditit_num),
+                    _significand = takeTop n x
+                }
+        | otherwise
+            = let
+                deleted_ditit_num = max 0 (e - n)
+            in
+                normalize DispVal {
+                    _exponent = Just (e - deleted_ditit_num),
+                    _significand = takeTop (numOfDigits x - deleted_ditit_num) x
+                }
 
 toNumber :: DispVal -> Double
 toNumber DispVal {_exponent = Nothing, _significand = x}
@@ -108,65 +161,65 @@ toNumber DispVal {_exponent = Nothing, _significand = x}
 toNumber DispVal {_exponent = Just e, _significand = x}
     = fromIntegral x / (10^e)
 
--- TODO: 桁溢れ
 fromNumber :: (RealFrac a) => a -> DispVal
 fromNumber d =
     let
         sign = if d >= 0 then 1 else -1
-        int_part_digits = numOfDigits $ floor $ abs d
+        int_part_digits = numOfDigits ((floor $ abs d)::Int)
         e = max 0 $ limitOfDigit - int_part_digits
     in
-        normalize DispVal {
+        takeTop limitOfDigit $ normalize DispVal {
             _exponent = if e == 0 then Nothing else Just e,
             _significand = sign * floor (abs d * 10^e)
         }
-
-addDigitToLast :: Int -> Int -> Int
-addDigitToLast 0 t = t
-addDigitToLast s t = s * 10 + t
-
-addDigit :: DispVal -> Int -> DispVal
-addDigit DispVal {_exponent = Nothing, _significand = x} a
-    = DispVal {
-        _exponent = Nothing,
-        _significand = addDigitToLast x a
-    }
-addDigit DispVal {_exponent = Just e, _significand = 0} 0
-    = DispVal {
-        _exponent = Just (e + 1),
-        _significand = 0
-    }
-addDigit DispVal {_exponent = Just e, _significand = x} a
-    = DispVal {
-        _exponent = Just (e + 1),
-        _significand = addDigitToLast x a
-    }
 
 dot :: DispVal -> DispVal
 dot DispVal {_exponent = Nothing, _significand = x}
     = DispVal {_exponent = Just 0, _significand = x}
 dot dv = dv
 
+-- |
 -- 小数点以下の末尾0削除
 normalize :: DispVal -> DispVal
-normalize DispVal {_exponent = Nothing, _significand = x}
-    = DispVal {_exponent = Nothing, _significand = x}
-normalize DispVal {_exponent = Just 0, _significand = x}
-    = DispVal {_exponent = Nothing, _significand = x}
-normalize DispVal {_exponent = e, _significand = 0}
-    = DispVal {_exponent = e, _significand = 0}
-normalize DispVal {_exponent = Just e, _significand = x}
-    | -9 <= x && x <= 9 = DispVal {_exponent = Just e, _significand = x}
+normalize
+    DispVal {
+        _exponent = Nothing,
+        _significand = x
+    }
+    = DispVal {
+        _exponent = Nothing,
+        _significand = x
+    }
+normalize
+    DispVal {
+        _exponent = Just 0,
+        _significand = x
+    }
+    = DispVal {
+        _exponent = Nothing,
+        _significand = x
+    }
+normalize
+    DispVal {
+        _exponent = Just e,
+        _significand = 0
+    }
+    = DispVal {
+        _exponent = Just e,
+        _significand = 0
+    }
+normalize
+    DispVal {
+        _exponent = Just e,
+        _significand = x
+    }
+    | getLastDigits x /= 0
+        = DispVal {
+            _exponent = Just e,
+            _significand = x
+        }
     | otherwise =
-        let
-            sign = signum x
-            abs_x = abs x
-            _tail = mod abs_x 10
-        in
-            if _tail /= 0 then
-                DispVal {_exponent = Just e, _significand = x}
-            else
-                normalize DispVal {
-                    _exponent = Just (e - 1),
-                    _significand = sign * (abs_x `div` 10)
-                }
+        normalize DispVal {
+            _exponent = Just (e - 1),
+            _significand = x `div` 10
+        }
