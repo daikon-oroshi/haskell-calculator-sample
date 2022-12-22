@@ -1,19 +1,18 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
-module DispValue
+module Calc.CalcValue.DispValue
     (
         DispVal (..),
         toNumber,
         dot,
-        addDigitToLast,
         zeroDispVal,
         unitDispVal,
         numOfDigits,
     ) where
 
-import Utility (IsDigits(..))
+import Calc.CalcValue.DigitUtility (IsDigits(..), addDigitToLast)
 import Data.Maybe ( isNothing, isJust )
-import Calc.CalcValue ( CalcValue(dot, addDigit) )
+import Calc.CalcValue.Base ( CalcValue(dot, addDigit) )
 import Debug.Trace ( traceShowId )
 
 data DispVal = DispVal {
@@ -41,8 +40,24 @@ instance CalcValue DispVal where
     dot DispVal {_exponent = Nothing, _significand = x}
         = DispVal {_exponent = Just 0, _significand = x}
     dot dv = dv
+
     addDigit :: DispVal -> Int -> DispVal
-    addDigit = addDigitToLast
+    addDigit dv a
+        | numOfDigits dv > limitOfDigit = dv
+        | isNothing (_exponent dv)
+            = dv {
+                _significand = addDigitToLast (_significand dv) a
+            }
+        | isJust (_exponent dv) && a == 0 && _significand dv == 0
+            = dv {
+                _exponent = fmap (+1) (_exponent dv),
+                _significand = 0
+            }
+        | otherwise =
+            DispVal {
+                _exponent = fmap (+1) (_exponent dv),
+                _significand = addDigitToLast (_significand dv) a
+            }
 
 instance Num DispVal where
     (+) :: DispVal -> DispVal -> DispVal
@@ -114,24 +129,6 @@ instance IsDigits DispVal where
 
     getLastDigits :: DispVal -> Int
     getLastDigits = getLastDigits . _significand
-
-    addDigitToLast :: DispVal -> Int -> DispVal
-    addDigitToLast dv a
-        | numOfDigits dv > limitOfDigit = dv
-        | isNothing (_exponent dv)
-            = dv {
-                _significand = addDigitToLast (_significand dv) a
-            }
-        | isJust (_exponent dv) && a == 0 && _significand dv == 0
-            = dv {
-                _exponent = fmap (+1) (_exponent dv),
-                _significand = 0
-            }
-        | otherwise =
-            DispVal {
-                _exponent = fmap (+1) (_exponent dv),
-                _significand = addDigitToLast (_significand dv) a
-            }
 
     takeTop :: Int -> DispVal -> DispVal
     takeTop

@@ -1,12 +1,14 @@
 module DispValueSpec (spec) where
 
 import Test.Hspec ( describe, it, shouldBe, Spec, Expectation )
-import DispValue (
+import Calc.CalcValue.DispValue (
         unitDispVal
         , zeroDispVal
-        , addDigitToLast
         , numOfDigits
         , DispVal (DispVal, _significand, _exponent)
+    )
+import Calc.CalcValue (
+        addDigit, CalcValue (addDigit)
     )
 
 testPlus :: (DispVal, DispVal) -> DispVal -> Expectation
@@ -16,7 +18,7 @@ testShow :: DispVal -> String -> Expectation
 testShow val _exp = show val `shouldBe` _exp
 
 testAddDigit :: (DispVal, Int) -> String -> Expectation
-testAddDigit (dv, num) _epx = show (addDigitToLast dv num) `shouldBe` _epx
+testAddDigit (dv, num) _epx = show (addDigit dv num) `shouldBe` _epx
 
 testProd :: (DispVal, DispVal) -> String -> Expectation
 testProd (dv1, dv2) _exp =

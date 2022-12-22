@@ -27,9 +27,10 @@ library
   exposed-modules:
       Calc.CalcState
       Calc.CalcValue
-      DispValue
+      Calc.CalcValue.Base
+      Calc.CalcValue.DigitUtility
+      Calc.CalcValue.DispValue
       Gui
-      Utility
   other-modules:
       Paths_calculator
   hs-source-dirs:

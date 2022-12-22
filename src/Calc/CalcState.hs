@@ -16,6 +16,7 @@ data SecondInputStep = SecondInputStep deriving Show
 data ResultStep = ResultStep deriving Show
 data CalcStep = forall s. (ICalcStep s, Show s) => CalcStep s
 instance Show CalcStep where
+    show :: CalcStep -> String
     show (CalcStep s) = "CalcStep" ++ show s
 
 data CalcState v = (CalcValue v) => CalcState {
