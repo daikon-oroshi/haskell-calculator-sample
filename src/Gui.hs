@@ -8,9 +8,9 @@ import Data.GI.Base ( on, AttrOp((:=)), new )
 import qualified GI.Gtk as Gtk.Object
 import Data.GI.Base.Overloading ( IsDescendantOf )
 import qualified Data.Text as T
-import CalcState as Cs
+import Calc.CalcState as Cs
 import Data.IORef
-import DispValue (DispVal(DispVal))
+import DispValue (DispVal)
 
 runGui :: IO ()
 runGui = do

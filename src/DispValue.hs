@@ -13,7 +13,7 @@ module DispValue
 
 import Utility (IsDigits(..))
 import Data.Maybe ( isNothing, isJust )
-import CalcValue
+import Calc.CalcValue ( CalcValue(dot, addDigit) )
 import Debug.Trace ( traceShowId )
 
 data DispVal = DispVal {

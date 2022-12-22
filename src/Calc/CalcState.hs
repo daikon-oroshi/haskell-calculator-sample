@@ -1,5 +1,5 @@
 {-# LANGUAGE GADTs, InstanceSigs, RankNTypes #-}
-module CalcState (
+module Calc.CalcState (
     CalcState,
     ICalcStep(..),
     csStep,
@@ -8,7 +8,7 @@ module CalcState (
     Operation (..)
 ) where
 
-import CalcValue ( CalcValue(..), Operation(..) )
+import Calc.CalcValue ( CalcValue(..), Operation(..) )
 
 data FirstInputStep = FirstInputStep deriving Show
 data OperationSelectedStep = OperationSelectedStep deriving Show

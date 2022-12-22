@@ -1,4 +1,4 @@
-module CalcValue (
+module Calc.CalcValue (
     CalcValue(..),
     Operation (..)
 ) where
