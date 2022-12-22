@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, InstanceSigs #-}
+{-# LANGUAGE GADTs, InstanceSigs, RankNTypes #-}
 module CalcState (
     CalcState,
     ICalcStep(..),
@@ -8,8 +8,7 @@ module CalcState (
     Operation (..)
 ) where
 
-import qualified DispValue as Dv
-import DispValue (zeroDispVal)
+import CalcValue ( CalcValue(..), Operation(..) )
 
 data FirstInputStep = FirstInputStep deriving Show
 data OperationSelectedStep = OperationSelectedStep deriving Show
@@ -19,103 +18,101 @@ data CalcStep = forall s. (ICalcStep s, Show s) => CalcStep s
 instance Show CalcStep where
     show (CalcStep s) = "CalcStep" ++ show s
 
-data Operation = Plus | Sub | Prod | Div deriving (Show, Eq)
-
-data CalcState = CalcState {
+data CalcState v = (CalcValue v) => CalcState {
     csStep :: CalcStep,
-    csCurrentVal :: Dv.DispVal,
-    csPrevVal :: Dv.DispVal,
+    csCurrentVal :: v,
+    csPrevVal :: v,
     csOperation :: Maybe Operation
 }
 
-initialState :: CalcState
+initialState :: forall v. (CalcValue v) => CalcState v
 initialState = CalcState {
     csStep = CalcStep FirstInputStep,
-    csCurrentVal = zeroDispVal,
-    csPrevVal = zeroDispVal,
+    csCurrentVal = 0,
+    csPrevVal = 0,
     csOperation = Nothing
 }
 
 class ICalcStep a where
-    actionDigit :: a -> CalcState -> Int -> CalcState
+    actionDigit :: (CalcValue v) => a -> CalcState v -> Int -> CalcState v
     actionDigit _ st d =
         st {
-            csCurrentVal = Dv.addDigitToLast (csCurrentVal st) d
+            csCurrentVal = addDigit (csCurrentVal st) d
         }
-    actionDot :: a -> CalcState -> CalcState
+    actionDot :: (CalcValue v) => a -> CalcState v -> CalcState v
     actionDot _ st =
         st {
-            csCurrentVal = Dv.dot (csCurrentVal st)
+            csCurrentVal = dot (csCurrentVal st)
         }
-    actionZeroZero :: a -> CalcState -> CalcState
+    actionZeroZero :: (CalcValue v) => a -> CalcState v -> CalcState v
     actionZeroZero _ st =
         st {
-            csCurrentVal = Dv.addDigitToLast (
-                Dv.addDigitToLast (csCurrentVal st) 0
+            csCurrentVal = addDigit (
+                addDigit (csCurrentVal st) 0
             ) 0
         }
-    actionPm :: a -> CalcState -> CalcState
+    actionPm :: (CalcValue v) => a -> CalcState v -> CalcState v
     actionPm _ st =
         st {
             csCurrentVal = -(csCurrentVal st)
         }
-    actionAc :: a -> CalcState -> CalcState
+    actionAc :: (CalcValue v) => a -> CalcState v -> CalcState v
     actionAc _ _ = initialState
-    actionC :: a -> CalcState -> CalcState
+    actionC :: (CalcValue v) => a -> CalcState v -> CalcState v
     actionC _ st =
         st {
             csStep = CalcStep FirstInputStep,
-            csCurrentVal = zeroDispVal
+            csCurrentVal = 0
         }
-    actionOperation :: a -> CalcState -> Operation -> CalcState
-    actionEq :: a -> CalcState -> CalcState
+    actionOperation :: (CalcValue v) => a -> CalcState v -> Operation -> CalcState v
+    actionEq :: (CalcValue v) => a -> CalcState v -> CalcState v
 
 instance ICalcStep FirstInputStep where
-    actionOperation :: FirstInputStep -> CalcState -> Operation -> CalcState
+    actionOperation :: FirstInputStep -> CalcState v -> Operation -> CalcState v
     actionOperation _ st op =
         st {
             csStep = CalcStep OperationSelectedStep,
             csOperation = Just op
         }
-    actionEq :: FirstInputStep -> CalcState -> CalcState
+    actionEq :: FirstInputStep -> CalcState v -> CalcState v
     actionEq _ st =
         st {
             csStep = CalcStep ResultStep
         }
 
 instance ICalcStep OperationSelectedStep where
-    actionDigit :: OperationSelectedStep -> CalcState -> Int -> CalcState
+    actionDigit :: (CalcValue v) => OperationSelectedStep -> CalcState v -> Int -> CalcState v
     actionDigit _ st d =
         st {
             csStep = CalcStep SecondInputStep,
             csPrevVal = csCurrentVal st,
-            csCurrentVal = Dv.addDigitToLast zeroDispVal d
+            csCurrentVal = addDigit 0 d
         }
-    actionDot :: OperationSelectedStep -> CalcState -> CalcState
+    actionDot :: (CalcValue v) => OperationSelectedStep -> CalcState v -> CalcState v
     actionDot _ st =
         st {
             csStep = CalcStep SecondInputStep,
             csPrevVal = csCurrentVal st,
-            csCurrentVal = Dv.dot zeroDispVal
+            csCurrentVal = dot 0
         }
-    actionZeroZero :: OperationSelectedStep -> CalcState -> CalcState
+    actionZeroZero :: (CalcValue v) => OperationSelectedStep -> CalcState v -> CalcState v
     actionZeroZero _ st =
         st {
             csStep = CalcStep SecondInputStep,
             csPrevVal = csCurrentVal st,
-            csCurrentVal = Dv.addDigitToLast (
-                Dv.addDigitToLast zeroDispVal 0
+            csCurrentVal = addDigit (
+                addDigit 0 0
             ) 0
         }
-    actionPm :: OperationSelectedStep -> CalcState -> CalcState
+    actionPm :: OperationSelectedStep -> CalcState v -> CalcState v
     actionPm _ st = st
 
-    actionOperation :: OperationSelectedStep ->CalcState -> Operation -> CalcState
+    actionOperation :: OperationSelectedStep -> CalcState v -> Operation -> CalcState v
     actionOperation _ st op =
         st {
             csOperation = Just op
         }
-    actionEq :: OperationSelectedStep -> CalcState -> CalcState
+    actionEq :: OperationSelectedStep -> CalcState v -> CalcState v
     actionEq _ st =
         st {
             csStep = CalcStep ResultStep,
@@ -123,84 +120,77 @@ instance ICalcStep OperationSelectedStep where
         }
 
 instance ICalcStep SecondInputStep where
-    actionOperation :: SecondInputStep -> CalcState -> Operation -> CalcState
+    actionOperation :: (CalcValue v) => SecondInputStep -> CalcState v -> Operation -> CalcState v
     actionOperation _ st op =
         st {
+            csCurrentVal = calculate (csPrevVal st) (csCurrentVal st) (csOperation st),
             csStep = CalcStep OperationSelectedStep,
             csOperation = Just op
         }
-    actionEq :: SecondInputStep -> CalcState -> CalcState
+    actionEq :: (CalcValue v) => SecondInputStep -> CalcState v -> CalcState v
     actionEq _ st =
         st {
             csStep = CalcStep ResultStep,
-            csCurrentVal = calc (csPrevVal st) (csCurrentVal st) (csOperation st),
-            csPrevVal = zeroDispVal,
+            csCurrentVal = calculate (csPrevVal st) (csCurrentVal st) (csOperation st),
+            csPrevVal = 0,
             csOperation = Nothing
         }
-    actionC :: a -> CalcState -> CalcState
+    actionC :: (CalcValue v) => SecondInputStep -> CalcState v -> CalcState v
     actionC _ st =
         st {
-            csCurrentVal = zeroDispVal
+            csCurrentVal = 0
         }
 
 instance ICalcStep ResultStep where
-    actionDigit :: ResultStep -> CalcState -> Int -> CalcState
+    actionDigit :: (CalcValue v) => ResultStep -> CalcState v -> Int -> CalcState v
     actionDigit _ st d =
         st {
             csStep = CalcStep FirstInputStep,
-            csCurrentVal = Dv.addDigitToLast zeroDispVal d
+            csCurrentVal = addDigit 0 d
         }
-    actionDot :: ResultStep -> CalcState -> CalcState
+    actionDot :: (CalcValue v) => ResultStep -> CalcState v -> CalcState v
     actionDot _ st =
         st {
             csStep = CalcStep FirstInputStep,
-            csCurrentVal = Dv.dot zeroDispVal
+            csCurrentVal = dot 0
         }
-    actionZeroZero :: ResultStep -> CalcState -> CalcState
+    actionZeroZero :: (CalcValue v) => ResultStep -> CalcState v -> CalcState v
     actionZeroZero _ st =
         st {
             csStep = CalcStep FirstInputStep,
-            csCurrentVal = Dv.addDigitToLast (
-                Dv.addDigitToLast zeroDispVal 0
+            csCurrentVal = addDigit (
+                addDigit 0 0
             ) 0
         }
-    actionPm :: ResultStep -> CalcState -> CalcState
+    actionPm :: (CalcValue v) => ResultStep -> CalcState v -> CalcState v
     actionPm _ st =
         st {
             csStep = CalcStep FirstInputStep,
             csCurrentVal = -(csCurrentVal st)
         }
-    actionOperation :: ResultStep -> CalcState -> Operation -> CalcState
+    actionOperation :: ResultStep -> CalcState v -> Operation -> CalcState v
     actionOperation _ st op =
         st {
             csStep = CalcStep OperationSelectedStep,
             csOperation = Just op
         }
-    actionEq :: ResultStep -> CalcState -> CalcState
+    actionEq :: ResultStep -> CalcState v -> CalcState v
     actionEq _ st = st
 
 instance ICalcStep CalcStep where
-    actionDigit :: CalcStep -> CalcState -> Int -> CalcState
+    actionDigit :: (CalcValue v) => CalcStep -> CalcState v -> Int -> CalcState v
     actionDigit (CalcStep s) = actionDigit s
-    actionDot ::  CalcStep -> CalcState -> CalcState
+    actionDot :: (CalcValue v) => CalcStep -> CalcState v -> CalcState v
     actionDot (CalcStep s) = actionDot s
-    actionZeroZero :: CalcStep -> CalcState -> CalcState
+    actionZeroZero :: (CalcValue v) => CalcStep -> CalcState v -> CalcState v
     actionZeroZero (CalcStep s) = actionZeroZero s
-    actionPm :: CalcStep -> CalcState -> CalcState
+    actionPm :: (CalcValue v) => CalcStep -> CalcState v -> CalcState v
     actionPm (CalcStep s) = actionPm s
-    actionAc :: CalcStep -> CalcState -> CalcState
+    actionAc :: (CalcValue v) => CalcStep -> CalcState v -> CalcState v
     actionAc (CalcStep s) = actionAc s
-    actionOperation :: CalcStep -> CalcState -> Operation -> CalcState
+    actionOperation :: (CalcValue v) => CalcStep -> CalcState v -> Operation -> CalcState v
     actionOperation (CalcStep s) = actionOperation s
-    actionC :: CalcStep -> CalcState -> CalcState
+    actionC :: (CalcValue v) => CalcStep -> CalcState v -> CalcState v
     actionC (CalcStep s) = actionC s
-    actionEq :: CalcStep -> CalcState -> CalcState
+    actionEq :: (CalcValue v) => CalcStep -> CalcState v -> CalcState v
     actionEq (CalcStep s) = actionEq s
-
-calc :: Fractional a => a -> a -> Maybe Operation -> a
-calc _ _ Nothing = 0
-calc dv1 dv2 (Just x)
-    | x == Plus = dv1 + dv2
-    | x == Sub = dv1 - dv2
-    | x == Prod = dv1 * dv2
-    | otherwise = dv1 / dv2

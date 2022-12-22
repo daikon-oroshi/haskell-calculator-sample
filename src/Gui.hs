@@ -10,6 +10,7 @@ import Data.GI.Base.Overloading ( IsDescendantOf )
 import qualified Data.Text as T
 import CalcState as Cs
 import Data.IORef
+import DispValue (DispVal(DispVal))
 
 runGui :: IO ()
 runGui = do
@@ -37,76 +38,76 @@ runGui = do
     #showAll win
     Gtk.main
 
-onClickDigit :: Gtk.EntryBuffer -> IORef Cs.CalcState -> Int -> IO ()
+onClickDigit :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> Int -> IO ()
 onClickDigit buffer csRef a = do
     modifyIORef csRef (
             \cs -> Cs.actionDigit (Cs.csStep cs) cs a
         )
     setEntry buffer csRef
 
-onClickZeroZero :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO ()
+onClickZeroZero :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO ()
 onClickZeroZero buffer csRef = do
     modifyIORef csRef (
             \cs -> Cs.actionZeroZero (Cs.csStep cs) cs
         )
     setEntry buffer csRef
 
-onClickDot :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO ()
+onClickDot :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO ()
 onClickDot buffer csRef = do
     modifyIORef csRef (
             \cs -> Cs.actionDot (Cs.csStep cs) cs
         )
     setEntry buffer csRef
 
-onClickAc :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO ()
+onClickAc :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO ()
 onClickAc buffer csRef = do
     modifyIORef csRef (
             \cs -> Cs.actionAc (Cs.csStep cs) cs
         )
     setEntry buffer csRef
 
-onClickC :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO ()
+onClickC :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO ()
 onClickC buffer csRef = do
     modifyIORef csRef (
             \cs -> Cs.actionC (Cs.csStep cs) cs
         )
     setEntry buffer csRef
 
-onClickOperation :: Gtk.EntryBuffer -> IORef Cs.CalcState -> Cs.Operation -> IO ()
+onClickOperation :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> Cs.Operation -> IO ()
 onClickOperation buffer csRef op = do
     modifyIORef csRef (
             \cs -> Cs.actionOperation (Cs.csStep cs) cs op
         )
     setEntry buffer csRef
 
-onClickEq :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO ()
+onClickEq :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO ()
 onClickEq buffer csRef = do
     modifyIORef csRef (
             \cs -> Cs.actionEq (Cs.csStep cs) cs
         )
     setEntry buffer csRef
 
-onClickPm :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO ()
+onClickPm :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO ()
 onClickPm buffer csRef = do
     modifyIORef csRef (
             \cs -> Cs.actionPm (Cs.csStep cs) cs
         )
     setEntry buffer csRef
 
-numKey :: Gtk.EntryBuffer -> IORef Cs.CalcState -> Int -> IO Gtk.Object.Button
+numKey :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> Int -> IO Gtk.Object.Button
 numKey buffer csRef a = do
     num_btn <- new Gtk.Button [ #label := T.pack (show a) ]
     _ <- on num_btn #clicked $ onClickDigit buffer csRef a
     return num_btn
 
-numKeyList :: Gtk.EntryBuffer -> IORef Cs.CalcState -> [Int]-> IO [Gtk.Object.Button]
+numKeyList :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> [Int]-> IO [Gtk.Object.Button]
 numKeyList _ _ [] = return []
 numKeyList buffer dv (x:xs) = do
     b <- numKey buffer dv x
     bs <- numKeyList buffer dv xs
     return $ b:bs
 
-numKeysBox :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO Gtk.Object.Box
+numKeysBox :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO Gtk.Object.Box
 numKeysBox buffer csRef = do
     row1_btns <- numKeyList buffer csRef [1, 2, 3]
     row2_btns <- numKeyList buffer csRef [4, 5, 6]
@@ -141,7 +142,7 @@ numKeysBox buffer csRef = do
     #add numkeys_box row_4
     return numkeys_box
 
-operationKeysBox :: Gtk.EntryBuffer -> IORef Cs.CalcState -> IO Gtk.Object.Box
+operationKeysBox :: Gtk.EntryBuffer -> IORef (Cs.CalcState DispVal) -> IO Gtk.Object.Box
 operationKeysBox buffer csRef = do
     operations_box <- new Gtk.Box [#orientation := Gtk.OrientationVertical]
 
@@ -191,7 +192,7 @@ operationKeysBox buffer csRef = do
 setEntry :: (
     IsDescendantOf Gtk.Object.EntryBuffer o,
     Gtk.Object.GObject o
-    ) => o -> IORef Cs.CalcState -> IO ()
+    ) => o -> IORef (Cs.CalcState DispVal) -> IO ()
 setEntry buffer csRef = do
     cs <- readIORef csRef
     Gtk.setEntryBufferText buffer $ T.pack $ show (Cs.csCurrentVal cs)

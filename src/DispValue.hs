@@ -13,6 +13,7 @@ module DispValue
 
 import Utility (IsDigits(..))
 import Data.Maybe ( isNothing, isJust )
+import CalcValue
 import Debug.Trace ( traceShowId )
 
 data DispVal = DispVal {
@@ -34,6 +35,14 @@ unitDispVal = DispVal {
     _exponent = Nothing,
     _significand = 1
 }
+
+instance CalcValue DispVal where
+    dot :: DispVal -> DispVal
+    dot DispVal {_exponent = Nothing, _significand = x}
+        = DispVal {_exponent = Just 0, _significand = x}
+    dot dv = dv
+    addDigit :: DispVal -> Int -> DispVal
+    addDigit = addDigitToLast
 
 instance Num DispVal where
     (+) :: DispVal -> DispVal -> DispVal
@@ -172,11 +181,6 @@ fromNumber d =
             _exponent = if e == 0 then Nothing else Just e,
             _significand = sign * floor (abs d * 10^e)
         }
-
-dot :: DispVal -> DispVal
-dot DispVal {_exponent = Nothing, _significand = x}
-    = DispVal {_exponent = Just 0, _significand = x}
-dot dv = dv
 
 -- |
 -- 小数点以下の末尾0削除

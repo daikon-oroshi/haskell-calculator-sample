@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       CalcState
+      CalcValue
       DispValue
       Gui
       Utility
