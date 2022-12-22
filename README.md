@@ -1,1 +1,1 @@
-# calculator
+# haskell-calculator-sample
