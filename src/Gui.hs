@@ -21,7 +21,7 @@ type Value = MDispVal
 runGui :: IO ()
 runGui = do
     _ <- Gtk.init Nothing
-    win <- new Gtk.Window [ #title := "calculator" ]
+    win <- new Gtk.Window [ #title := "電卓" ]
     _ <- on win #destroy Gtk.mainQuit
 
     root_box <- new Gtk.Box [#orientation := Gtk.OrientationVertical]
