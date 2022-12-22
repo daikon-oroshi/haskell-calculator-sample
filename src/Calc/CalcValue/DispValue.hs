@@ -1,5 +1,6 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
+
 module Calc.CalcValue.DispValue
     (
         DispVal (..),
@@ -12,8 +13,7 @@ module Calc.CalcValue.DispValue
 
 import Calc.CalcValue.DigitUtility (IsDigits(..), addDigitToLast)
 import Data.Maybe ( isNothing, isJust )
-import Calc.CalcValue.Base ( CalcValue(dot, addDigit) )
-import Debug.Trace ( traceShowId )
+import Calc.CalcValue.Base ( CalcValue(dot, addDigit, display) )
 
 data DispVal = DispVal {
     _exponent :: Maybe Int,
@@ -58,6 +58,31 @@ instance CalcValue DispVal where
                 _exponent = fmap (+1) (_exponent dv),
                 _significand = addDigitToLast (_significand dv) a
             }
+    display :: DispVal -> String
+    display DispVal {
+            _exponent = Nothing,
+            _significand = x
+        } = show x
+    display DispVal {
+            _exponent = Just e,
+            _significand = x
+        }
+        | x == 0 =
+            "0." ++ concat (replicate e "0")
+        | otherwise =
+            let
+                sign_str = if x > 0 then "" else "-"
+                abs_x = abs x
+                digits = numOfDigits abs_x
+            in
+                if digits > e
+                then
+                    let
+                        (int_part, deci_part) = splitAt (digits - e) $ show abs_x
+                    in sign_str ++ int_part ++ "." ++ deci_part
+                else
+                    sign_str ++ "0." ++ concat (replicate (e - digits) "0") ++ show abs_x
+
 
 instance Num DispVal where
     (+) :: DispVal -> DispVal -> DispVal
@@ -89,32 +114,6 @@ instance Fractional DispVal where
     dv_1 / dv_2 = fromNumber $ toNumber dv_1 / toNumber dv_2
     fromRational :: Rational -> DispVal
     fromRational = fromNumber
-
-instance Show DispVal where
-    show :: DispVal -> String
-    show DispVal {
-            _exponent = Nothing,
-            _significand = x
-        } = show x
-    show DispVal {
-            _exponent = Just e,
-            _significand = x
-        }
-        | x == 0 =
-            "0." ++ concat (replicate e "0")
-        | otherwise =
-            let
-                sign_str = if x > 0 then "" else "-"
-                abs_x = abs x
-                digits = numOfDigits abs_x
-            in
-                if digits > e
-                then
-                    let
-                        (int_part, deci_part) = splitAt (digits - e) $ show abs_x
-                    in sign_str ++ int_part ++ "." ++ deci_part
-                else
-                    sign_str ++ "0." ++ concat (replicate (e - digits) "0") ++ show abs_x
 
 instance Eq DispVal where
     (==) :: DispVal -> DispVal -> Bool

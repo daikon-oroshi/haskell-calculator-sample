@@ -1,6 +1,7 @@
 module Calc.CalcValue (
     module Calc.CalcValue.Base,
-    module Calc.CalcValue.DispValue
+    module Calc.CalcValue.DispValue,
+    module Calc.CalcValue.MDispValue
 ) where
 
 import Calc.CalcValue.Base (
@@ -8,3 +9,4 @@ import Calc.CalcValue.Base (
         Operation (..)
     )
 import Calc.CalcValue.DispValue (DispVal)
+import Calc.CalcValue.MDispValue (MDispVal)

@@ -14,9 +14,9 @@ import Calc.CalcState as Cs
       CalcState(..),
       initialState )
 import Data.IORef ( IORef, modifyIORef, newIORef, readIORef )
-import Calc.CalcValue (DispVal)
+import Calc.CalcValue ( DispVal, display, MDispVal )
 
-type Value = DispVal
+type Value = MDispVal
 
 runGui :: IO ()
 runGui = do
@@ -201,4 +201,4 @@ setEntry :: (
     ) => o -> IORef (Cs.CalcState Value) -> IO ()
 setEntry buffer csRef = do
     cs <- readIORef csRef
-    Gtk.setEntryBufferText buffer $ T.pack $ show (Cs.csCurrentVal cs)
+    Gtk.setEntryBufferText buffer $ T.pack $ display (Cs.csCurrentVal cs)

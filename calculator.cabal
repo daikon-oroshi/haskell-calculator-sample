@@ -30,6 +30,7 @@ library
       Calc.CalcValue.Base
       Calc.CalcValue.DigitUtility
       Calc.CalcValue.DispValue
+      Calc.CalcValue.MDispValue
       Gui
   other-modules:
       Paths_calculator
@@ -67,6 +68,7 @@ test-suite calculator-test
   main-is: Spec.hs
   other-modules:
       DispValueSpec
+      MDispValueSpec
       Paths_calculator
   hs-source-dirs:
       test
