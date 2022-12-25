@@ -1,34 +1,34 @@
-module DispValueSpec (spec) where
+module ExpNotationSpec (spec) where
 
 import Test.Hspec ( describe, it, shouldBe, Spec, Expectation )
-import Calc.CalcValue.DispValue (
+import Calc.CalcValue.ExpNotation (
         unitDispVal
         , zeroDispVal
         , numOfDigits
-        , DispVal (DispVal, _significand, _exponent)
+        , ExpNotation (ExpNotation, _significand, _exponent)
     )
 import Calc.CalcValue (
         display,
         addDigit, CalcValue (addDigit)
     )
 
-instance Show DispVal where
+instance Show ExpNotation where
     show = display
 
-testPlus :: (DispVal, DispVal) -> DispVal -> Expectation
+testPlus :: (ExpNotation, ExpNotation) -> ExpNotation -> Expectation
 testPlus (val1, val2) _exp = (val1 + val2) `shouldBe` _exp
 
-testDisplay :: DispVal -> String -> Expectation
+testDisplay :: ExpNotation -> String -> Expectation
 testDisplay val _exp = display val `shouldBe` _exp
 
-testAddDigit :: (DispVal, Int) -> String -> Expectation
+testAddDigit :: (ExpNotation, Int) -> String -> Expectation
 testAddDigit (dv, num) _epx = display (addDigit dv num) `shouldBe` _epx
 
-testProd :: (DispVal, DispVal) -> String -> Expectation
+testProd :: (ExpNotation, ExpNotation) -> String -> Expectation
 testProd (dv1, dv2) _exp =
     display (dv1 * dv2) `shouldBe` _exp
 
-testNumOfDigit :: DispVal -> Int -> Expectation
+testNumOfDigit :: ExpNotation -> Int -> Expectation
 testNumOfDigit val _exp = numOfDigits val `shouldBe` _exp
 
 tests :: [(String, [(String, Expectation)])]
@@ -37,35 +37,35 @@ tests = [
             ("1", testDisplay unitDispVal "1")
             , ("-1", testDisplay (unitDispVal {_significand = -1}) "-1")
             , ("nagate 1", testDisplay (-unitDispVal) "-1")
-            , ("0.", testDisplay DispVal {
+            , ("0.", testDisplay ExpNotation {
                 _significand = 0,
                 _exponent = Just 0
             } "0.")
-            , ("0.00", testDisplay DispVal {
+            , ("0.00", testDisplay ExpNotation {
                 _significand = 0,
                 _exponent = Just 2
             } "0.00")
-            , ("91.", testDisplay DispVal {
+            , ("91.", testDisplay ExpNotation {
                 _significand = 91,
                 _exponent = Just 0
             } "91.")
-            , ("9.1", testDisplay DispVal {
+            , ("9.1", testDisplay ExpNotation {
                 _significand = 91,
                 _exponent = Just 1
             } "9.1")
-            , ("0.91", testDisplay DispVal {
+            , ("0.91", testDisplay ExpNotation {
                 _significand = 91,
                 _exponent = Just 2
             } "0.91")
-            , ("-91.", testDisplay DispVal {
+            , ("-91.", testDisplay ExpNotation {
                 _significand = -91,
                 _exponent = Just 0
             } "-91.")
-            , ("-9.1", testDisplay DispVal {
+            , ("-9.1", testDisplay ExpNotation {
                 _significand = -91,
                 _exponent = Just 1
             } "-9.1")
-            , ("-0.91", testDisplay DispVal {
+            , ("-0.91", testDisplay ExpNotation {
                 _significand = -91,
                 _exponent = Just 2
             } "-0.91")

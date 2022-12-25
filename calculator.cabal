@@ -29,8 +29,8 @@ library
       Calc.CalcValue
       Calc.CalcValue.Base
       Calc.CalcValue.DigitUtility
-      Calc.CalcValue.DispValue
-      Calc.CalcValue.MDispValue
+      Calc.CalcValue.ExpNotation
+      Calc.CalcValue.MExpNotation
       Gui
   other-modules:
       Paths_calculator
@@ -67,8 +67,8 @@ test-suite calculator-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      DispValueSpec
-      MDispValueSpec
+      ExpNotationSpec
+      MExpNotationSpec
       Paths_calculator
   hs-source-dirs:
       test

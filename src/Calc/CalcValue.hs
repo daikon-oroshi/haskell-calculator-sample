@@ -1,12 +1,12 @@
 module Calc.CalcValue (
     module Calc.CalcValue.Base,
-    module Calc.CalcValue.DispValue,
-    module Calc.CalcValue.MDispValue
+    module Calc.CalcValue.ExpNotation,
+    module Calc.CalcValue.MExpNotation
 ) where
 
 import Calc.CalcValue.Base (
         CalcValue(..),
         Operation (..)
     )
-import Calc.CalcValue.DispValue (DispVal)
-import Calc.CalcValue.MDispValue (MDispVal)
+import Calc.CalcValue.ExpNotation (ExpNotation)
+import Calc.CalcValue.MExpNotation (MExpNotation)

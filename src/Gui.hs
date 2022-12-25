@@ -14,9 +14,9 @@ import Calc.CalcState as Cs
       CalcState(..),
       initialState )
 import Data.IORef ( IORef, modifyIORef, newIORef, readIORef )
-import Calc.CalcValue ( DispVal, display, MDispVal )
+import Calc.CalcValue ( ExpNotation, display, MExpNotation )
 
-type Value = MDispVal
+type Value = MExpNotation
 
 runGui :: IO ()
 runGui = do

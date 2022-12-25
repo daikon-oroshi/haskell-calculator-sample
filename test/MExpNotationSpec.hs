@@ -1,8 +1,8 @@
-module MDispValueSpec (spec) where
+module MExpNotationSpec (spec) where
 
 import Test.Hspec ( describe, it, shouldBe, Spec, Expectation )
-import Calc.CalcValue.MDispValue (
-        MDispVal
+import Calc.CalcValue.MExpNotation (
+        MExpNotation
     )
 
 import Calc.CalcValue (
@@ -10,20 +10,20 @@ import Calc.CalcValue (
         addDigit, CalcValue (addDigit)
     )
 
-testPlus :: (MDispVal, MDispVal) -> String -> Expectation
+testPlus :: (MExpNotation, MExpNotation) -> String -> Expectation
 testPlus (val1, val2) _exp = display (val1 + val2) `shouldBe` _exp
 
-testDisplay :: MDispVal -> String -> Expectation
+testDisplay :: MExpNotation -> String -> Expectation
 testDisplay val _exp = display val `shouldBe` _exp
 
-testAddDigit :: (MDispVal, Int) -> String -> Expectation
+testAddDigit :: (MExpNotation, Int) -> String -> Expectation
 testAddDigit (dv, num) _epx = display (addDigit dv num) `shouldBe` _epx
 
-testProd :: (MDispVal, MDispVal) -> String -> Expectation
+testProd :: (MExpNotation, MExpNotation) -> String -> Expectation
 testProd (dv1, dv2) _exp =
     display (dv1 * dv2) `shouldBe` _exp
 
-testDiv :: (MDispVal, MDispVal) -> String -> Expectation
+testDiv :: (MExpNotation, MExpNotation) -> String -> Expectation
 testDiv (dv1, dv2) _exp =
     display (dv1 / dv2) `shouldBe` _exp
 
