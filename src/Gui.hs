@@ -183,7 +183,7 @@ operationKeysBox buffer csRef = do
 
     row_4 <- new Gtk.HButtonBox []
 
-    pm_btn <- new Gtk.Button [ #label := "±" ]
+    pm_btn <- new Gtk.Button [ #label := "+/-" ]
     _ <- on pm_btn #clicked $ onClickPm buffer csRef
     #add row_4 pm_btn
 
