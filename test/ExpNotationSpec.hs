@@ -33,44 +33,44 @@ testNumOfDigit val _exp = numOfDigits val `shouldBe` _exp
 
 tests :: [(String, [(String, Expectation)])]
 tests = [
-        ("testShow", [
-            ("1", testDisplay unitDispVal "1")
-            , ("-1", testDisplay (unitDispVal {_significand = -1}) "-1")
-            , ("nagate 1", testDisplay (-unitDispVal) "-1")
-            , ("0.", testDisplay ExpNotation {
+        ("表示(display)のテスト", [
+            ("1の表示", testDisplay unitDispVal "1")
+            , ("-1の表示", testDisplay (unitDispVal {_significand = -1}) "-1")
+            , ("nagate 1の表示", testDisplay (-unitDispVal) "-1")
+            , ("0. の表示", testDisplay ExpNotation {
                 _significand = 0,
                 _exponent = Just 0
             } "0.")
-            , ("0.00", testDisplay ExpNotation {
+            , ("0.00 の表示", testDisplay ExpNotation {
                 _significand = 0,
                 _exponent = Just 2
             } "0.00")
-            , ("91.", testDisplay ExpNotation {
+            , ("91. の表示", testDisplay ExpNotation {
                 _significand = 91,
                 _exponent = Just 0
             } "91.")
-            , ("9.1", testDisplay ExpNotation {
+            , ("9.1 の表示", testDisplay ExpNotation {
                 _significand = 91,
                 _exponent = Just 1
             } "9.1")
-            , ("0.91", testDisplay ExpNotation {
+            , ("0.91 の表示", testDisplay ExpNotation {
                 _significand = 91,
                 _exponent = Just 2
             } "0.91")
-            , ("-91.", testDisplay ExpNotation {
+            , ("-91. の表示", testDisplay ExpNotation {
                 _significand = -91,
                 _exponent = Just 0
             } "-91.")
-            , ("-9.1", testDisplay ExpNotation {
+            , ("-9.1 の表示", testDisplay ExpNotation {
                 _significand = -91,
                 _exponent = Just 1
             } "-9.1")
-            , ("-0.91", testDisplay ExpNotation {
+            , ("-0.91 の表示", testDisplay ExpNotation {
                 _significand = -91,
                 _exponent = Just 2
             } "-0.91")
         ])
-        , ("testShowFromNumber", [
+        , ("fromNumberのテスト", [
             ("1", testDisplay 1 "1")
             , ("1", testDisplay 0 "0")
             , ("0.91", testDisplay 0.91 "0.91")
@@ -78,24 +78,24 @@ tests = [
             , ("-1.9", testDisplay (-1.9) "-1.9")
             , ("-0.91", testDisplay (-0.91) "-0.91")
         ])
-        , ("testAddDigit",[
+        , ("addDigitのテスト",[
             ("0に追加", testAddDigit (zeroDispVal, 3) "3")
             , ("1に1を追加", testAddDigit (unitDispVal, 1) "11")
         ] )
-        , ("testProd", [
+        , ("掛け算のテスト", [
             ("5 * 9", testProd (5, 9) "45")
         ])
-        , ("testPlus", [
+        , ("足し算のテスト", [
             ("0と1の足し算", testPlus (zeroDispVal, unitDispVal) unitDispVal)
         ])
-        , ("numOfDigit", [
-            ("0", testNumOfDigit 0 1)
-            , ("1", testNumOfDigit 1 1)
-            , ("11", testNumOfDigit 11 2)
-            , ("-1", testNumOfDigit (-1) 1)
-            , ("-0.09", testNumOfDigit (-0.09) 3)
+        , ("桁数のテスト", [
+            ("0のテスト", testNumOfDigit 0 1)
+            , ("1のテスト", testNumOfDigit 1 1)
+            , ("11のテスト", testNumOfDigit 11 2)
+            , ("-1のテスト", testNumOfDigit (-1) 1)
+            , ("-0.09のテスト", testNumOfDigit (-0.09) 3)
         ])
-        , ("numOfDigits", [
+        , ("桁切り捨てテスト", [
             ("1234567890123", testDisplay 1234567890123 "123456789012")
             , ("0.123456789012", testDisplay 0.123456789012 "0.12345678901")
         ])

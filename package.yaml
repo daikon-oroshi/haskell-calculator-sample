@@ -25,7 +25,6 @@ dependencies:
 - gi-gtk
 - text
 - mtl
-- hspec
 
 ghc-options:
 - -Wall

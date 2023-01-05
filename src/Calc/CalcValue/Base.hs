@@ -7,7 +7,7 @@ data Operation = Plus | Sub | Prod | Div deriving (Show, Eq)
 
 class (Num a, Fractional a) => CalcValue a where
     -- |
-    -- 小数点をつける
+    -- 数字を末尾に追加する
     addDigit :: a -> Int -> a
     -- |
     -- 小数点をつける

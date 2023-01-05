@@ -29,30 +29,30 @@ testDiv (dv1, dv2) _exp =
 
 tests :: [(String, [(String, Expectation)])]
 tests = [
-        ("testDisplay", [
+        ("表示(display)のテスト", [
             ("Nothing", testDisplay Nothing "Error")
             , ("1", testDisplay (Just 1) "1")
             , ("nagate 1", testDisplay (-1) "-1")
             , ("-0.18", testDisplay (-0.18)
              "-0.18")
         ])
-        , ("testAddDigit",[
+        , ("addDigitのテスト",[
             ("Nothingに追加", testAddDigit (Nothing, 3) "Error")
             , ("1に追加", testAddDigit (1, 1) "11")
         ] )
-        , ("testProd", [
+        , ("掛け算のテスト", [
             ("5 * 9", testProd (5, 9) "45")
             , ("5 * Nothin", testProd (5, Nothing) "Error")
             , ("Nothing * 9", testProd (Nothing, 9) "Error")
             , ("Nothing * Nothing", testProd (Nothing, Nothing) "Error")
         ])
-        , ("testPlus", [
+        , ("足し算のテスト", [
             ("0と1の足し算", testPlus (0, 1) "1")
             , ("Nothing + 1", testPlus (Nothing, 1) "Error")
             , ("0 + Nothing", testPlus (0, Nothing) "Error")
             , ("Nothing + Nothing", testPlus (Nothing, Nothing) "Error")
         ])
-        , ("testDiv", [
+        , ("割り算のテスト", [
             ("1 / 2", testDiv (1, 2) "0.5")
             , ("1 / 0", testDiv (1, 0) "Error")
             , ("Nothing / 2", testDiv (Nothing, 1) "Error")

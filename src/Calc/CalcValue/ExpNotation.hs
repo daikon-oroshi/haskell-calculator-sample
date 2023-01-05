@@ -20,8 +20,8 @@ data ExpNotation = ExpNotation {
     _significand :: Int
 }
 
-limitOfDigit :: Int
-limitOfDigit = 12
+limitOfDigits :: Int
+limitOfDigits = 12
 
 zeroDispVal :: ExpNotation
 zeroDispVal = ExpNotation {
@@ -43,7 +43,7 @@ instance CalcValue ExpNotation where
 
     addDigit :: ExpNotation -> Int -> ExpNotation
     addDigit dv a
-        | numOfDigits dv > limitOfDigit = dv
+        | numOfDigits dv > limitOfDigits = dv
         | isNothing (_exponent dv)
             = dv {
                 _significand = addDigitToLast (_significand dv) a
@@ -104,7 +104,7 @@ instance Num ExpNotation where
         | otherwise = unitDispVal {_significand = -1}
 
     fromInteger :: Integer -> ExpNotation
-    fromInteger x = takeTop limitOfDigit ExpNotation {
+    fromInteger x = takeTop limitOfDigits ExpNotation {
         _exponent = Nothing,
         _significand = fromIntegral x
     }
@@ -171,9 +171,9 @@ fromNumber d =
     let
         sign = if d >= 0 then 1 else -1
         int_part_digits = numOfDigits ((floor $ abs d)::Int)
-        e = max 0 $ limitOfDigit - int_part_digits
+        e = max 0 $ limitOfDigits - int_part_digits
     in
-        takeTop limitOfDigit $ normalize ExpNotation {
+        takeTop limitOfDigits $ normalize ExpNotation {
             _exponent = if e == 0 then Nothing else Just e,
             _significand = sign * floor (abs d * 10^e)
         }
