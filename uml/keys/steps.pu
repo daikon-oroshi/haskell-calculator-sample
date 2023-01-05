@@ -1,0 +1,10 @@
+@startuml
+
+FirstInputStep: *第1変数入力
+OperationSelectedStep: *演算子選択後
+SecondInputStep: *第2変数入力
+ResultStep: *結果表示
+
+[*] --> FirstInputStep
+
+@enduml

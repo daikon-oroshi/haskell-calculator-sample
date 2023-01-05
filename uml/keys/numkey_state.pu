@@ -1,0 +1,12 @@
+@startuml
+
+!include steps.pu
+
+FirstInputStep -> FirstInputStep
+FirstInputStep -right[hidden]-> OperationSelectedStep
+OperationSelectedStep -right-> SecondInputStep
+SecondInputStep -> SecondInputStep
+SecondInputStep -right[hidden]-> ResultStep
+ResultStep -> FirstInputStep
+
+@enduml
