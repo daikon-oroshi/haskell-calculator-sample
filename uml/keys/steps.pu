@@ -1,4 +1,4 @@
-@startuml
+@startuml steps
 
 FirstInputStep: *第1変数入力
 OperationSelectedStep: *演算子選択後

@@ -1,4 +1,4 @@
-@startuml
+@startuml clear_state
 
 !include steps.pu
 

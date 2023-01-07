@@ -1,0 +1,68 @@
+@startuml calc_steps
+
+interface ICalcStep {
+    ---
+    actionDigit
+    actionDot
+    actionZeroZero
+    actionPm
+    actionAc
+    actionC
+    actionOperation
+    actionEq
+}
+
+class FirstInputStep {
+    ---
+    actionDigit
+    actionDot
+    actionZeroZero
+    actionPm
+    actionAc
+    actionC
+    actionOperation
+    actionEq
+}
+
+class OperationSelectedStep {
+    ---
+    actionDigit
+    actionDot
+    actionZeroZero
+    actionPm
+    actionAc
+    actionC
+    actionOperation
+    actionEq
+}
+
+class SecondInputStep {
+    ---
+    actionDigit
+    actionDot
+    actionZeroZero
+    actionPm
+    actionAc
+    actionC
+    actionOperation
+    actionEq
+}
+
+class ResultStep {
+    ---
+    actionDigit
+    actionDot
+    actionZeroZero
+    actionPm
+    actionAc
+    actionC
+    actionOperation
+    actionEq
+}
+
+FirstInputStep -up-|> ICalcStep
+OperationSelectedStep -up-|> ICalcStep
+SecondInputStep -up-|> ICalcStep
+ResultStep -up-|> ICalcStep
+
+@enduml
